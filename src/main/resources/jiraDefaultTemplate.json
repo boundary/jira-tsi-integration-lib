@@ -15,7 +15,7 @@
     "filter": {
         "status": ["Closed", "Open", "Resolved"],
         "issueType": [],
-        "priority": ["Blocker", "Important", "Not Set", "Of Interest", "On Hold", "Nice to have", "Minor"]
+        "priority": []
     },
     "eventDefinition": {
         "title": "@SUMMARY",
@@ -121,7 +121,7 @@
         "fetchKey": "name"
     },
     "@TIME_TO_FIRST_RESPONCE": {
-        "fieldId": "customfield_10023",
+        "fieldId": "customfield_10422",
         "fetchKey": "value"
     },
     "@PROJECTNAME": {
