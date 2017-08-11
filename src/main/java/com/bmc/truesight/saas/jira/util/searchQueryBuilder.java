@@ -21,29 +21,31 @@ public class searchQueryBuilder {
             List<String> values = entry.getValue();
             if (values.size() > 0) {
                 if (queryCounter == 0) {
-                    finalSearchQuery.append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values, entry.getKey())).append(Constants.CLOSE_PRANETHESIS);
+                    finalSearchQuery.append(entry.getKey()).append(Constants.IN_OPERATOR).append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values)).append(Constants.CLOSE_PRANETHESIS);
                 } else {
-                    finalSearchQuery.append(Constants.JQL_AND_OPERATOR).append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values, entry.getKey())).append(Constants.CLOSE_PRANETHESIS);
+                    finalSearchQuery.append(Constants.JQL_AND_OPERATOR).append(entry.getKey()).append(Constants.IN_OPERATOR).append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values)).append(Constants.CLOSE_PRANETHESIS);
                 }
                 queryCounter += 1;
             }
         }
-        if (finalSearchQuery != null) {
+        if (finalSearchQuery != null && queryCounter != 0) {
             finalSearchQuery.append(Constants.JQL_AND_OPERATOR).append(searchQuery.toString());
+        } else {
+            finalSearchQuery.append(searchQuery.toString());
         }
         return finalSearchQuery.toString();
     }
 
-    public static String fieldQuery(List<String> fieldQuery, String key) {
+    public static String fieldQuery(List<String> fieldQuery) {
         StringBuilder query = new StringBuilder();
-        int count = 0;
+        int fieldCount = 0;
         for (String field : fieldQuery) {
-            if (count == 0) {
-                query.append(key).append(Constants.EQUAL_OPERATOR).append("'").append(field).append("'");
+            if (fieldCount == 0) {
+                query.append("'").append(field).append("'");
             } else {
-                query.append(Constants.OR_OPERATOR).append(key).append(Constants.EQUAL_OPERATOR).append("'").append(field).append("'");
+                query.append(",").append("'").append(field).append("'");
             }
-            count += 1;
+            fieldCount += 1;
         }
         return query.toString();
     }

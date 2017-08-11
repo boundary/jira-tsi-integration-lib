@@ -77,8 +77,11 @@ public class JiraEntryEventAdapter {
             try {
                 FieldItem fieldItem = template.getFieldItemMap().get(placeholder);
                 JsonNode jsonNode = entry.get(Constants.JSON_FILED_NODE);
-
                 if (Constants.ID.equalsIgnoreCase(placeholder)) {
+                    value = entry.get(fieldItem.getFieldId()).asText();
+                    return value;
+                }
+                if (Constants.FILED_KEY.equalsIgnoreCase(placeholder)) {
                     value = entry.get(fieldItem.getFieldId()).asText();
                     return value;
                 }
@@ -120,7 +123,15 @@ public class JiraEntryEventAdapter {
             }
         }
         if (invalidEventList.size() > 0) {
+            List<String> invalidEvents = new ArrayList<>();
+            try {
+                for (TSIEvent event : invalidEventList) {
+                    invalidEvents.add(event.getProperties().get("key"));
+                }
+            } catch (Exception ex) {
+            }
             System.err.println("{}events dropped before sending to TSI {}" + invalidEventList.size());
+            System.err.println("{}events dropped tickets keys {}" + invalidEvents);
             System.err.println("Events size is greater than allowed limit({})" + Constants.MAX_EVENT_SIZE_ALLOWED_BYTES + " bytes. Please review the field mapping ");
         }
         response.setValidEventList(tsiValidEventList);

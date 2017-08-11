@@ -73,10 +73,10 @@ public class Constants {
     String LOGIN_FAILED = "Login failed to Remedy Server, ({0})";
     public static final String PROPERTY_FIELD_COUNT_EXCEEDS = "Event properties field count of {0} exceeds maximum of {1}.";
     public static final String JSON_NODE_RESOLUTION = "resolution";
-    public static final String ID = "@KEY";
+    public static final String ID = "@ID";
     public static final String TSI_SEVERITY = "INFO";
     public static final String FILTER_CONFIG_NOT_FOUND = "Either the configuration file does not contain proper 'filter' property, or 'fields' are not correct. {0}";
-    public static final String FIELD_ID = "key";
+    public static final String FIELD_ID = "id";
     public static String JQL_STATUS = "status in ";
     public static String JQL_AND_OPERATOR = " AND ";
     public static String JQL_ISSUES_TYPE = "issueType in ";
@@ -84,6 +84,7 @@ public class Constants {
     public static String OPEN_PRANETHESIS = "(";
     public static String CLOSE_PRANETHESIS = ")";
     public static String OR_OPERATOR= " OR ";
-    public static String EQUAL_OPERATOR= " = ";
-    
+    public static String IN_OPERATOR= " in ";
+    public static final String FILED_KEY = "@KEY";
+     
 }

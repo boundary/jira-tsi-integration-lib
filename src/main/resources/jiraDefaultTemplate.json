@@ -14,17 +14,18 @@
     },
     "filter": {
         "status": ["Closed", "Open", "Resolved"],
-        "issueType": ["Incident", "Change"],
+        "issueType": [],
         "priority": ["Blocker", "Important", "Not Set", "Of Interest", "On Hold", "Nice to have", "Minor"]
     },
     "eventDefinition": {
         "title": "@SUMMARY",
         "fingerprintFields": [
-            "key", "createdAt"
+            "id", "createdAt"
         ],
         "severity": "@SEVERITY",
         "status": "@STATUS",
         "properties": {
+            "id": "@ID",
             "key": "@KEY",
             "Assignee": "@ASSIGNEE",
             "Priority": "@PRIORITY",
@@ -54,6 +55,10 @@
             "type": "Jira",
             "ref": "Jira"
         }
+    },
+    "@ID": {
+        "fieldId": "id",
+        "fetchKey": "id"
     },
     "@KEY": {
         "fieldId": "key",
@@ -117,7 +122,7 @@
     },
     "@TIME_TO_FIRST_RESPONCE": {
         "fieldId": "customfield_10023",
-        "fetchKey": "name"
+        "fetchKey": "value"
     },
     "@PROJECTNAME": {
         "fieldId": "project",
