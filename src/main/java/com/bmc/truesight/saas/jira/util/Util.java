@@ -89,4 +89,8 @@ public class Util {
         DateTime dateTime = new DateTime(createdDate, DateTimeZone.UTC);
         return dateTime.getMillis();
     }
+
+    public static boolean isContaineString(String values) {
+        return values.contains(Constants.CUSTOME_FIELD_VALUE);
+    }
 }

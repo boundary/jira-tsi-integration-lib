@@ -8,14 +8,22 @@ import com.bmc.truesight.saas.jira.beans.FieldItem;
 import com.bmc.truesight.saas.jira.beans.JIRAEventResponse;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
+import com.bmc.truesight.saas.jira.util.BuiltInFields;
 import com.bmc.truesight.saas.jira.util.Constants;
 import com.bmc.truesight.saas.jira.util.StringUtil;
 import com.bmc.truesight.saas.jira.util.Util;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
 
 /**
  * This is an adapter which converts the jira {@link Entry} items into
@@ -88,18 +96,29 @@ public class JiraEntryEventAdapter {
                 if (!jsonNode.get(fieldItem.getFieldId()).isMissingNode()) {
                     if (jsonNode.get(fieldItem.getFieldId()).isContainerNode()) {
                         if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                            value = jsonNode.get(fieldItem.getFieldId()).get(fieldItem.getFetchKey()).asText();
+                            if (Util.isContaineString(fieldItem.getFieldId())) {
+                                value = getCustomeFiledValues(jsonNode.get(fieldItem.getFieldId()));
+                                return value;
+                            } else if (BuiltInFields.COMPONENTS.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.VERSION.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.FIXVERSION.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getMultipleValues(fieldItem, jsonNode.get(fieldItem.getFieldId()));
+                                return value;
+                            } else if (BuiltInFields.LABLES.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getArrayValues(jsonNode.get(fieldItem.getFieldId()));
+                                return value;
+                            } else if (BuiltInFields.ISSUELINKS.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getIssueLinks(jsonNode.get(fieldItem.getFieldId()));
+                                return value;
+                            } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
+                                value = jsonNode.get(fieldItem.getFieldId()).get(fieldItem.getFetchKey()).asText();
+                                return value;
+                            }
                         }
                     } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
                         value = jsonNode.get(fieldItem.getFetchKey()).asText();
+                        return value;
                     }
                 }
-                String val = "";
-                if (value == null) {
-                } else {
-                    val = value;
-                    return val;
-                }
+
             } catch (Exception ex) {
                 return value;
             }
@@ -122,8 +141,8 @@ public class JiraEntryEventAdapter {
                 invalidEventList.add(event);
             }
         }
+        List<String> invalidEvents = new ArrayList<>();
         if (invalidEventList.size() > 0) {
-            List<String> invalidEvents = new ArrayList<>();
             try {
                 for (TSIEvent event : invalidEventList) {
                     invalidEvents.add(event.getProperties().get("key"));
@@ -136,6 +155,84 @@ public class JiraEntryEventAdapter {
         }
         response.setValidEventList(tsiValidEventList);
         response.setInvalidEventList(invalidEventList);
+        response.setInvalidEventIdsList(invalidEvents);
         return response;
+    }
+
+    private String getMultipleValues(FieldItem fieldItem, JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        int count = 0;
+        if (jsonNode != null && !jsonNode.isNull()) {
+            for (JsonNode node : jsonNode) {
+                try {
+                    if (count == 0) {
+                        value.append(node.get(fieldItem.getFetchKey()).asText());
+                    } else {
+                        value.append(",").append(node.get(fieldItem.getFetchKey()).asText());
+                    }
+                    count++;
+                } catch (Exception ex) {
+                }
+            }
+        }
+        return value.toString();
+    }
+
+    private String getArrayValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        ObjectMapper mapper = new ObjectMapper();
+        if (jsonNode != null && !jsonNode.isNull()) {
+            ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
+            });
+            try {
+                List<String> condList = obReader.readValue(jsonNode);
+                value.append(condList);
+            } catch (IOException ex) {
+                java.util.logging.Logger.getLogger(JiraEntryEventAdapter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return value.toString();
+    }
+
+    private String getIssueLinks(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        Set<String> treeSet = new TreeSet<>();
+        if (jsonNode != null && !jsonNode.isNull()) {
+            for (JsonNode node : jsonNode) {
+                try {
+                    treeSet.add(node.get("type").get("name").asText());
+                } catch (Exception ex) {
+                }
+            }
+            value.append(treeSet);
+        }
+        return value.toString();
+    }
+
+    private String getCustomeFiledValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        Set<String> treeSet = new TreeSet<>();
+        boolean isMultiArray = true;
+        ObjectMapper mapper = new ObjectMapper();
+        if (jsonNode != null && !jsonNode.isNull() && jsonNode.size() > 0) {
+            try {
+                treeSet.add(jsonNode.get("value").asText());
+                isMultiArray = false;
+            } catch (Exception ex) {
+            }
+            value.append(treeSet);
+            if (isMultiArray) {
+                ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
+                });
+                try {
+                    List<String> condList = obReader.readValue(jsonNode);
+                    value.append(condList);
+                } catch (Exception ex) {
+
+                }
+            }
+
+        }
+        return value.toString();
     }
 }

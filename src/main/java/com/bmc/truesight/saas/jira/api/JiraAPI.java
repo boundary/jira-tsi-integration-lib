@@ -15,7 +15,6 @@ import com.bmc.truesight.saas.jira.exception.ParsingException;
 import com.bmc.truesight.saas.jira.util.Constants;
 import com.bmc.truesight.saas.jira.util.StringUtil;
 import com.bmc.truesight.saas.jira.util.Util;
-import com.bmc.truesight.saas.remedy.integration.exception.BulkEventsIngestionFailedException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

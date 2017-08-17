@@ -86,5 +86,7 @@ public class Constants {
     public static String OR_OPERATOR= " OR ";
     public static String IN_OPERATOR= " in ";
     public static final String FILED_KEY = "@KEY";
+    public static final String CUSTOME_FIELD_VALUE="customfield_";
+    
      
 }
