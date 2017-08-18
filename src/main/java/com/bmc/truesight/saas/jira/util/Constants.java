@@ -17,7 +17,7 @@ public class Constants {
     public static final String COLON_DOUBLE_SLASH = "://";
     public static final String COLON = ":";
     public static final String SLASH = "/";
-    public static final String AUTHENTICATED_FAILED = "Authentication failure";
+    public static final String AUTHENTICATED_FAILED = "Authentication failed";
     public static final String SYSTEM_FIELDS = "JIRA";
     public static final String CUSTOM_FIELDS = "CUSTOM";
     public static final String SUPPORT_ALL = "all";
@@ -83,10 +83,11 @@ public class Constants {
     public static String JQL_PRIORITY_TYPE = "priority in ";
     public static String OPEN_PRANETHESIS = "(";
     public static String CLOSE_PRANETHESIS = ")";
-    public static String OR_OPERATOR= " OR ";
-    public static String IN_OPERATOR= " in ";
+    public static String OR_OPERATOR = " OR ";
+    public static String IN_OPERATOR = " in ";
     public static final String FILED_KEY = "@KEY";
-    public static final String CUSTOME_FIELD_VALUE="customfield_";
-    
-     
+    public static final String CUSTOME_FIELD_VALUE = "customfield_";
+    public static final String FIELD_FETCH_KEY = "key";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_VALUE = "value";
 }

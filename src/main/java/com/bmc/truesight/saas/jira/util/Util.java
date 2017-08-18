@@ -80,8 +80,13 @@ public class Util {
 
     public static String JiraformatedDateAndTime(Date date) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String jiraDateAndTimeFormat = formatter.format(date);
+        String jiraDateAndTimeFormat = null;
+        if (date == null) {
+            return jiraDateAndTimeFormat;
+        } else {
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+            jiraDateAndTimeFormat = formatter.format(date);
+        }
         return jiraDateAndTimeFormat;
     }
 

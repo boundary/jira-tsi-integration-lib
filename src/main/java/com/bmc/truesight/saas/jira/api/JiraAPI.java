@@ -55,13 +55,13 @@ public class JiraAPI {
         return null;
     }
 
-    public static boolean isValidCredentials(JiraRestClient jiraRestClient, final String userName) {
+    public static boolean isValidCredentials(JiraRestClient jiraRestClient, final String userName, final String hostName) {
         boolean isValid = true;
         try {
             Promise<User> promise = jiraRestClient.getUserClient().getUser(userName);
             User user = promise.claim();
         } catch (Exception ex) {
-            System.err.println(Constants.AUTHENTICATED_FAILED + "{} " + ex.getMessage());
+            System.err.println(Constants.AUTHENTICATED_FAILED + " for host name {" + hostName + "} and Error { " + ex.getMessage() + " }");
             isValid = false;
         }
         return isValid;

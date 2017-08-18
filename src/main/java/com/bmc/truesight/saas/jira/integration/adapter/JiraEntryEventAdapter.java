@@ -81,7 +81,7 @@ public class JiraEntryEventAdapter {
 
     private String getValueFromEntry(Template template, JsonNode entry, String placeholder) {
         if (placeholder.startsWith("@")) {
-            String value = "null";
+            String value = "";
             try {
                 FieldItem fieldItem = template.getFieldItemMap().get(placeholder);
                 JsonNode jsonNode = entry.get(Constants.JSON_FILED_NODE);
@@ -98,35 +98,32 @@ public class JiraEntryEventAdapter {
                         if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
                             if (Util.isContaineString(fieldItem.getFieldId())) {
                                 value = getCustomeFiledValues(jsonNode.get(fieldItem.getFieldId()));
-                                return value;
                             } else if (BuiltInFields.COMPONENTS.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.VERSION.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.FIXVERSION.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
-                                value = getMultipleValues(fieldItem, jsonNode.get(fieldItem.getFieldId()));
-                                return value;
+                                value = getMultipleValues(jsonNode.get(fieldItem.getFieldId()));
                             } else if (BuiltInFields.LABLES.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
                                 value = getArrayValues(jsonNode.get(fieldItem.getFieldId()));
-                                return value;
                             } else if (BuiltInFields.ISSUELINKS.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
                                 value = getIssueLinks(jsonNode.get(fieldItem.getFieldId()));
-                                return value;
                             } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                                value = jsonNode.get(fieldItem.getFieldId()).get(fieldItem.getFetchKey()).asText();
-                                return value;
+                                value = jsonNode.get(fieldItem.getFieldId()).get(Constants.FIELD_NAME).asText();
                             }
                         }
                     } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                        value = jsonNode.get(fieldItem.getFetchKey()).asText();
-                        return value;
+                        value = jsonNode.get(fieldItem.getFieldId()).asText();
                     }
                 }
-
+                if (value == null) {
+                    return " ";
+                } else {
+                    return value;
+                }
             } catch (Exception ex) {
+                log.trace("Not able to find the field {}" + ex.getMessage());
                 return value;
             }
         } else {
             return placeholder;
         }
-
-        return null;
     }
 
     public JIRAEventResponse eventList(JsonNode responseIssuesNode, Template template, final String serviceType) {
@@ -145,7 +142,7 @@ public class JiraEntryEventAdapter {
         if (invalidEventList.size() > 0) {
             try {
                 for (TSIEvent event : invalidEventList) {
-                    invalidEvents.add(event.getProperties().get("key"));
+                    invalidEvents.add(event.getProperties().get(Constants.FIELD_FETCH_KEY));
                 }
             } catch (Exception ex) {
             }
@@ -159,19 +156,22 @@ public class JiraEntryEventAdapter {
         return response;
     }
 
-    private String getMultipleValues(FieldItem fieldItem, JsonNode jsonNode) {
+    private String getMultipleValues(JsonNode jsonNode) {
         StringBuilder value = new StringBuilder();
         int count = 0;
-        if (jsonNode != null && !jsonNode.isNull()) {
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
             for (JsonNode node : jsonNode) {
                 try {
                     if (count == 0) {
-                        value.append(node.get(fieldItem.getFetchKey()).asText());
+                        value.append(node.get(Constants.FIELD_NAME).asText());
                     } else {
-                        value.append(",").append(node.get(fieldItem.getFetchKey()).asText());
+                        value.append(",").append(node.get(Constants.FIELD_NAME).asText());
                     }
                     count++;
                 } catch (Exception ex) {
+                    log.trace("Not able to find the field {}" + ex.getMessage());
                 }
             }
         }
@@ -181,14 +181,16 @@ public class JiraEntryEventAdapter {
     private String getArrayValues(JsonNode jsonNode) {
         StringBuilder value = new StringBuilder();
         ObjectMapper mapper = new ObjectMapper();
-        if (jsonNode != null && !jsonNode.isNull()) {
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
             ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
             });
             try {
                 List<String> condList = obReader.readValue(jsonNode);
                 value.append(condList);
             } catch (IOException ex) {
-                java.util.logging.Logger.getLogger(JiraEntryEventAdapter.class.getName()).log(Level.SEVERE, null, ex);
+                log.trace("Not able to find the multi values field and ignore it {} " + ex.getMessage());
             }
         }
         return value.toString();
@@ -197,11 +199,14 @@ public class JiraEntryEventAdapter {
     private String getIssueLinks(JsonNode jsonNode) {
         StringBuilder value = new StringBuilder();
         Set<String> treeSet = new TreeSet<>();
-        if (jsonNode != null && !jsonNode.isNull()) {
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
             for (JsonNode node : jsonNode) {
                 try {
-                    treeSet.add(node.get("type").get("name").asText());
+                    treeSet.add(node.get("type").get(Constants.FIELD_NAME).asText());
                 } catch (Exception ex) {
+                    log.trace("Not able to find the issue link field and ignore it {} " + ex.getMessage());
                 }
             }
             value.append(treeSet);
@@ -214,11 +219,14 @@ public class JiraEntryEventAdapter {
         Set<String> treeSet = new TreeSet<>();
         boolean isMultiArray = true;
         ObjectMapper mapper = new ObjectMapper();
-        if (jsonNode != null && !jsonNode.isNull() && jsonNode.size() > 0) {
+        if (jsonNode == null || jsonNode.isNull() || jsonNode.size() < 0) {
+            return value.toString();
+        } else {
             try {
-                treeSet.add(jsonNode.get("value").asText());
+                treeSet.add(jsonNode.get(Constants.FIELD_VALUE).asText());
                 isMultiArray = false;
             } catch (Exception ex) {
+                log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
             }
             value.append(treeSet);
             if (isMultiArray) {
@@ -228,7 +236,7 @@ public class JiraEntryEventAdapter {
                     List<String> condList = obReader.readValue(jsonNode);
                     value.append(condList);
                 } catch (Exception ex) {
-
+                    log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
                 }
             }
 

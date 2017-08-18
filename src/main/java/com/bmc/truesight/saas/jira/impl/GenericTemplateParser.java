@@ -87,7 +87,7 @@ public class GenericTemplateParser implements TemplateParser {
             updateConfig(defaultConfig, config);
             //defaultTemplate
         } else {
-            log.info("config field is not found, falling back to default values while parsing");
+            log.warn("config field is not found, falling back to default values while parsing");
         }
         if (filterConfiguration != null) {
             Map<String, List<String>> filterItemMap = defaultTemplate.getFilter();
@@ -109,7 +109,7 @@ public class GenericTemplateParser implements TemplateParser {
 
             //defaultTemplate
         } else {
-            log.info("config field is not found, falling back to default values while parsing");
+            log.warn("config field is not found, falling back to default values while parsing");
         }
         // Read the payload details and map to pojo
         JsonNode payloadNode = rootNode.get("eventDefinition");
@@ -125,7 +125,7 @@ public class GenericTemplateParser implements TemplateParser {
             updateEventDefinition(defaultEvent, event);
             //defaultTemplate
         } else {
-            log.info("eventDefinition field not found, falling back to default values while parsing");
+            log.warn("eventDefinition field not found, falling back to default values while parsing");
         }
 
         // Iterate over the properties and if it starts with '@', put it to
