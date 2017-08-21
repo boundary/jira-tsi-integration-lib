@@ -6,6 +6,15 @@ public class JIRAEventResponse {
 
     private List<TSIEvent> validEventList;
     private List<TSIEvent> invalidEventList;
+    private List<String> invalidEventIdsList;
+
+    public List<String> getInvalidEventIdsList() {
+        return invalidEventIdsList;
+    }
+
+    public void setInvalidEventIdsList(List<String> invalidEventIdsList) {
+        this.invalidEventIdsList = invalidEventIdsList;
+    }
 
     public List<TSIEvent> getInvalidEventList() {
         return invalidEventList;
@@ -23,5 +32,4 @@ public class JIRAEventResponse {
         this.validEventList = validEventList;
     }
 
-  
 }

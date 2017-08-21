@@ -101,17 +101,22 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 if (protocalType != null) {
                     config.setProtocalType(protocalType.asText());
                 }
+                String endDate = configuration.get(Constants.CONFIG_END_DATE_CONDITION_FIELDS).asText();
+                if (endDate != null) {
+                    config.setEndDateTime(Util.format(endDate));
+                }
+                String startDate = configuration.get(Constants.CONFIG_START_DATE_CONDITION_FIELDS).asText();
+                if (startDate != null) {
+                    config.setStartDateTime(Util.format(startDate));
+                }
+                
             }
 
             template.setConfig(config);
         } catch (Exception e) {
             throw new ParsingException(StringUtil.format(Constants.CONFIG_PROPERTY_NOT_FOUND, new Object[]{e.getMessage()}));
         }
-        /*catch (ParseException ex) {
-            throw new ParsingException(StringUtil.format(Constants.CONFIG_DATE_FORMAT, new Object[]{ex.getMessage()}));
-        }*/
-
-        // Read the payload details and map to pojo
+        //Read the payload details and map to pojo
         try {
             JsonNode payloadNode = rootNode.get(Constants.EVENTDEF_NODE_NAME);
             String payloadString = mapper.writeValueAsString(payloadNode);

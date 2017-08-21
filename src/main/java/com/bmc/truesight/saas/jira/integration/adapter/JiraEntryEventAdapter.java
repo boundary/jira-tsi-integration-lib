@@ -8,14 +8,21 @@ import com.bmc.truesight.saas.jira.beans.FieldItem;
 import com.bmc.truesight.saas.jira.beans.JIRAEventResponse;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
+import com.bmc.truesight.saas.jira.util.BuiltInFields;
 import com.bmc.truesight.saas.jira.util.Constants;
 import com.bmc.truesight.saas.jira.util.StringUtil;
 import com.bmc.truesight.saas.jira.util.Util;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This is an adapter which converts the jira {@link Entry} items into
@@ -73,7 +80,7 @@ public class JiraEntryEventAdapter {
 
     private String getValueFromEntry(Template template, JsonNode entry, String placeholder) {
         if (placeholder.startsWith("@")) {
-            String value = "null";
+            String value = "";
             try {
                 FieldItem fieldItem = template.getFieldItemMap().get(placeholder);
                 JsonNode jsonNode = entry.get(Constants.JSON_FILED_NODE);
@@ -88,26 +95,34 @@ public class JiraEntryEventAdapter {
                 if (!jsonNode.get(fieldItem.getFieldId()).isMissingNode()) {
                     if (jsonNode.get(fieldItem.getFieldId()).isContainerNode()) {
                         if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                            value = jsonNode.get(fieldItem.getFieldId()).get(fieldItem.getFetchKey()).asText();
+                            if (Util.isContaineString(fieldItem.getFieldId())) {
+                                value = getCustomeFiledValues(jsonNode.get(fieldItem.getFieldId()));
+                            } else if (BuiltInFields.COMPONENTS.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.VERSION.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.FIXVERSION.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getMultipleValues(jsonNode.get(fieldItem.getFieldId()));
+                            } else if (BuiltInFields.LABLES.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getArrayValues(jsonNode.get(fieldItem.getFieldId()));
+                            } else if (BuiltInFields.ISSUELINKS.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
+                                value = getIssueLinks(jsonNode.get(fieldItem.getFieldId()));
+                            } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
+                                value = jsonNode.get(fieldItem.getFieldId()).get(Constants.FIELD_NAME).asText();
+                            }
                         }
                     } else if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                        value = jsonNode.get(fieldItem.getFetchKey()).asText();
+                        value = jsonNode.get(fieldItem.getFieldId()).asText();
                     }
                 }
-                String val = "";
                 if (value == null) {
+                    return " ";
                 } else {
-                    val = value;
-                    return val;
+                    return value;
                 }
             } catch (Exception ex) {
+                log.trace("Not able to find the field {}" + ex.getMessage());
                 return value;
             }
         } else {
             return placeholder;
         }
-
-        return null;
     }
 
     public JIRAEventResponse eventList(JsonNode responseIssuesNode, Template template, final String serviceType) {
@@ -122,20 +137,107 @@ public class JiraEntryEventAdapter {
                 invalidEventList.add(event);
             }
         }
+        List<String> invalidEvents = new ArrayList<>();
         if (invalidEventList.size() > 0) {
-            List<String> invalidEvents = new ArrayList<>();
             try {
                 for (TSIEvent event : invalidEventList) {
-                    invalidEvents.add(event.getProperties().get("key"));
+                    invalidEvents.add(event.getProperties().get(Constants.FIELD_FETCH_KEY));
                 }
             } catch (Exception ex) {
+                log.error("Exception occured while getting the invalid events {}", ex.getMessage());
             }
-            System.err.println("{}events dropped before sending to TSI {}" + invalidEventList.size());
-            System.err.println("{}events dropped tickets keys {}" + invalidEvents);
-            System.err.println("Events size is greater than allowed limit({})" + Constants.MAX_EVENT_SIZE_ALLOWED_BYTES + " bytes. Please review the field mapping ");
         }
         response.setValidEventList(tsiValidEventList);
         response.setInvalidEventList(invalidEventList);
+        response.setInvalidEventIdsList(invalidEvents);
         return response;
+    }
+
+    private String getMultipleValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        int count = 0;
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
+            for (JsonNode node : jsonNode) {
+                try {
+                    if (count == 0) {
+                        value.append(node.get(Constants.FIELD_NAME).asText());
+                    } else {
+                        value.append(",").append(node.get(Constants.FIELD_NAME).asText());
+                    }
+                    count++;
+                } catch (Exception ex) {
+                    log.trace("Not able to find the field {}" + ex.getMessage());
+                }
+            }
+        }
+        return value.toString();
+    }
+
+    private String getArrayValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        ObjectMapper mapper = new ObjectMapper();
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
+            ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
+            });
+            try {
+                List<String> condList = obReader.readValue(jsonNode);
+                value.append(condList);
+            } catch (IOException ex) {
+                log.trace("Not able to find the multi values field and ignore it {} " + ex.getMessage());
+            }
+        }
+        return value.toString();
+    }
+
+    private String getIssueLinks(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        Set<String> treeSet = new TreeSet<>();
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
+            for (JsonNode node : jsonNode) {
+                try {
+                    treeSet.add(node.get("type").get(Constants.FIELD_NAME).asText());
+                } catch (Exception ex) {
+                    log.trace("Not able to find the issue link field and ignore it {} " + ex.getMessage());
+                }
+            }
+            value.append(treeSet);
+        }
+        return value.toString();
+    }
+
+    private String getCustomeFiledValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        Set<String> treeSet = new TreeSet<>();
+        boolean isMultiArray = true;
+        ObjectMapper mapper = new ObjectMapper();
+        if (jsonNode == null || jsonNode.isNull() || jsonNode.size() <= 0) {
+            return value.toString();
+        } else {
+            try {
+                treeSet.add(jsonNode.get(Constants.FIELD_VALUE).asText());
+                isMultiArray = false;
+            } catch (Exception ex) {
+                log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
+            }
+            value.append(treeSet);
+            if (isMultiArray) {
+                ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
+                });
+                try {
+                    List<String> condList = obReader.readValue(jsonNode);
+                    value.append(condList);
+                } catch (Exception ex) {
+                    log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
+                }
+            }
+
+        }
+        return value.toString();
     }
 }

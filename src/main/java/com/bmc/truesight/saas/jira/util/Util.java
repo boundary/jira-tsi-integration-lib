@@ -80,13 +80,22 @@ public class Util {
 
     public static String JiraformatedDateAndTime(Date date) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String jiraDateAndTimeFormat = formatter.format(date);
+        String jiraDateAndTimeFormat = null;
+        if (date == null) {
+            return jiraDateAndTimeFormat;
+        } else {
+            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+            jiraDateAndTimeFormat = formatter.format(date);
+        }
         return jiraDateAndTimeFormat;
     }
 
     public static long convertIntoUTC(String createdDate) {
         DateTime dateTime = new DateTime(createdDate, DateTimeZone.UTC);
         return dateTime.getMillis();
+    }
+
+    public static boolean isContaineString(String values) {
+        return values.contains(Constants.CUSTOME_FIELD_VALUE);
     }
 }
