@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
 
 /**
  * This is an adapter which converts the jira {@link Entry} items into
@@ -145,10 +144,8 @@ public class JiraEntryEventAdapter {
                     invalidEvents.add(event.getProperties().get(Constants.FIELD_FETCH_KEY));
                 }
             } catch (Exception ex) {
+                log.error("Exception occured while getting the invalid events {}", ex.getMessage());
             }
-            System.err.println("{}events dropped before sending to TSI {}" + invalidEventList.size());
-            System.err.println("{}events dropped tickets keys {}" + invalidEvents);
-            System.err.println("Events size is greater than allowed limit({})" + Constants.MAX_EVENT_SIZE_ALLOWED_BYTES + " bytes. Please review the field mapping ");
         }
         response.setValidEventList(tsiValidEventList);
         response.setInvalidEventList(invalidEventList);
@@ -219,7 +216,7 @@ public class JiraEntryEventAdapter {
         Set<String> treeSet = new TreeSet<>();
         boolean isMultiArray = true;
         ObjectMapper mapper = new ObjectMapper();
-        if (jsonNode == null || jsonNode.isNull() || jsonNode.size() < 0) {
+        if (jsonNode == null || jsonNode.isNull() || jsonNode.size() <= 0) {
             return value.toString();
         } else {
             try {

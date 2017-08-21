@@ -1,7 +1,7 @@
 {
     "config": {
         "jiraHostName": "<hostName>",
-        "jiraPort":"",
+        "jiraPort": "",
         "jiraUserName": "<userName>",
         "jiraPassword": "<password>",
         "tsiEventEndpoint": "https://api.truesight.bmc.com/v1/events",
@@ -38,7 +38,6 @@
             "Resolutiondate": "@RESOLUTION_DATE",
             "Description": "@DESCRIPTION",
             "LastViewedDate": "@LASTVIEWEDDATE",
-            "Time_to_first_response": "@TIME_TO_FIRST_RESPONCE",
             "ProjectName": "@PROJECTNAME",
             "app_id": "Jira TSI Integration"
 
@@ -103,9 +102,6 @@
     },
     "@STATUS": {
         "fieldId": "status"
-    },
-    "@TIME_TO_FIRST_RESPONCE": {
-        "fieldId": "customfield_10124"
     },
     "@PROJECTNAME": {
         "fieldId": "project"
