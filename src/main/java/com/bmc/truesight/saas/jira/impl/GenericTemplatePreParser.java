@@ -2,7 +2,6 @@ package com.bmc.truesight.saas.jira.impl;
 
 import com.bmc.truesight.saas.jira.beans.Configuration;
 import com.bmc.truesight.saas.jira.beans.FieldItem;
-import com.bmc.truesight.saas.jira.beans.Filter;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
@@ -24,9 +23,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import java.text.ParseException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class helps in preParsing the default master configurations and return
@@ -38,13 +34,13 @@ import java.util.logging.Logger;
 public class GenericTemplatePreParser implements TemplatePreParser {
 
     @Override
-    public Template loadDefaults(String fileName) throws ParsingException {
+    public Template loadDefaults() throws ParsingException {
 
         Template template = new Template();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = null;
         try {
-            String configJson = getFile(fileName);
+            String configJson = getFile(Constants.JIRA_TEMPLATE_FILE_NAME);
             rootNode = mapper.readTree(configJson);
         } catch (IOException e) {
             throw new ParsingException(StringUtil.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{e.getMessage()}));
@@ -62,7 +58,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
 
                 JsonNode portNode = configuration.get(Constants.CONFIG_PORT_NODE_NAME);
                 if (portNode != null) {
-                    config.setJiraPort(portNode.asInt());
+                    config.setJiraPort(portNode.asText());
                 }
 
                 JsonNode userNode = configuration.get(Constants.CONFIG_USERNAME_NODE_NAME);
@@ -99,7 +95,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 }
                 JsonNode protocalType = configuration.get(Constants.CONFIG_PROTOCAL_TYPE);
                 if (protocalType != null) {
-                    config.setProtocalType(protocalType.asText());
+                    config.setProtocolType(protocalType.asText());
                 }
                 String endDate = configuration.get(Constants.CONFIG_END_DATE_CONDITION_FIELDS).asText();
                 if (endDate != null) {
@@ -109,7 +105,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 if (startDate != null) {
                     config.setStartDateTime(Util.format(startDate));
                 }
-                
+
             }
 
             template.setConfig(config);

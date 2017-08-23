@@ -1,5 +1,7 @@
 package com.bmc.truesight.saas.jira.impl;
 
+import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.bmc.truesight.saas.jira.api.JiraAPI;
 import com.bmc.truesight.saas.jira.beans.Configuration;
 import com.bmc.truesight.saas.jira.beans.FieldItem;
 import com.bmc.truesight.saas.jira.beans.Filter;
@@ -25,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -174,6 +177,9 @@ public class GenericTemplateParser implements TemplateParser {
         if (config.getEndDateTime() != null) {
             defaultConfig.setEndDateTime(config.getEndDateTime());
         }
+        if (config.getProtocolType() != null) {
+            defaultConfig.setProtocolType(config.getProtocolType());
+        }
         //Disabled ability to override from the user 
         /* if (config.getChunkSize() != null) {
             defaultConfig.setChunkSize(config.getChunkSize());
@@ -223,10 +229,62 @@ public class GenericTemplateParser implements TemplateParser {
         }
     }
 
-    private void updateFilter(Filter defaultConfig, Filter filter) {
-        //defaultConfig.setStatusConditionFields(filter.getStatusConditionFields());
-        //defaultConfig.setPriorityConditionFields(filter.getPriorityConditionFields());
-        //defaultConfig.setIssueTypeConditionFields(filter.getIssueTypeConditionFields());
+    @Override
+    public Template ignoreFields(Template defaultTemplate, final String hostName, final String userName, final String password, final String portNumber, final String protocolType) {
+        try {
+            Map<String, String> fields = new HashMap<>();
+            JiraRestClient client = JiraAPI.getJiraRestClient(hostName, portNumber, userName, password, protocolType);
+            boolean isValid = JiraAPI.isValidCredentials(client, userName, hostName);
+            if (isValid) {
+                Map<String, String> jiraFields = new HashMap<>();
+                jiraFields = JiraAPI.getTypeFields(client);
+                fields.put(Constants.APPLICATION_ID, Constants.APPLICATION_ID);
+                fields.put(Constants.FIELD_FETCH_KEY, Constants.FIELD_FETCH_KEY);
+                fields.put(Constants.FIELD_ID, Constants.FIELD_ID);
+                fields.put(Constants.FILED_KEY, Constants.FILED_KEY);
+                fields.put(Constants.ID, Constants.ID);
+                fields.putAll(jiraFields);
+                Map<String, FieldItem> finalFieldItem = new HashMap<>();
+                for (Map.Entry<String, FieldItem> entry : defaultTemplate.getFieldItemMap().entrySet()) {
+                    FieldItem fieldItem = entry.getValue();
+                    if (fields.containsKey(fieldItem.getFieldId())) {
+                        finalFieldItem.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                defaultTemplate.setFieldItemMap(finalFieldItem);
+                Map<String, String> finalPropertiesFields = new HashMap<>();
+                for (Map.Entry<String, String> val : defaultTemplate.getEventDefinition().getProperties().entrySet()) {
+                    FieldItem fieldItem = finalFieldItem.get(val.getValue());
+                    if (fieldItem == null) {
+                        if (Constants.APPLICATION_ID.equalsIgnoreCase(val.getKey())) {
+                            finalPropertiesFields.put(val.getKey(), val.getValue());
+                        } else {
+                            log.info("Field Mapping is invalid hence ignoring it, property name is {} " + val.getKey());
+                        }
+                    } else {
+                        finalPropertiesFields.put(val.getKey(), val.getValue());
+                    }
+                }
+                FieldItem fieldItem = finalFieldItem.get(defaultTemplate.getEventDefinition().getCreatedAt());
+                if (fieldItem == null) {
+                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getCreatedAt());
+                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
+                }
+                FieldItem status = finalFieldItem.get(defaultTemplate.getEventDefinition().getStatus());
+                if (status == null) {
+                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getStatus());
+                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
+                }
+                FieldItem severity = finalFieldItem.get(defaultTemplate.getEventDefinition().getStatus());
+                if (severity == null) {
+                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getSeverity());
+                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
+                }
+                defaultTemplate.getEventDefinition().setProperties(finalPropertiesFields);
+            }
+        } catch (Exception ex) {
+            log.trace("Exception occured while featching fileds from JIRA {}" + ex.getMessage());
+        }
+        return defaultTemplate;
     }
-
 }

@@ -44,7 +44,7 @@ public class JiraEntryEventAdapter {
      * @return TsiEvent {@link TSIEvent} object compatible to TSI event
      * ingestion API
      */
-    public TSIEvent convertEntryToEvent(Template template, JsonNode entry, final String serviceType) {
+    public TSIEvent convertEntryToEvent(Template template, JsonNode entry) {
 
         TSIEvent event = new TSIEvent(template.getEventDefinition());
 
@@ -65,13 +65,12 @@ public class JiraEntryEventAdapter {
 
         // valiadting source
         EventSource source = event.getSource();
-        source.setName(serviceType);
-        source.setName(serviceType);
+        source.setName(getValueFromEntry(template, entry, source.getName()));
         source.setType(getValueFromEntry(template, entry, source.getType()));
         source.setRef(getValueFromEntry(template, entry, source.getRef()));
 
         EventSource sender = event.getSender();
-        sender.setName(serviceType);
+        sender.setName(getValueFromEntry(template, entry, sender.getName()));
         sender.setType(getValueFromEntry(template, entry, sender.getType()));
         sender.setRef(getValueFromEntry(template, entry, sender.getRef()));
         return event;
@@ -125,12 +124,12 @@ public class JiraEntryEventAdapter {
         }
     }
 
-    public JIRAEventResponse eventList(JsonNode responseIssuesNode, Template template, final String serviceType) {
+    public JIRAEventResponse eventList(JsonNode responseIssuesNode, Template template) {
         List<TSIEvent> tsiValidEventList = new ArrayList<>();
         List<TSIEvent> invalidEventList = new ArrayList<>();
         JIRAEventResponse response = new JIRAEventResponse();
         for (JsonNode rootnode : responseIssuesNode) {
-            TSIEvent event = convertEntryToEvent(template, rootnode, serviceType);
+            TSIEvent event = convertEntryToEvent(template, rootnode);
             if (StringUtil.isObjectJsonSizeAllowed(event)) {
                 tsiValidEventList.add(event);
             } else {
