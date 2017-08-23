@@ -91,8 +91,12 @@ public class Util {
     }
 
     public static long convertIntoUTC(String createdDate) {
-        DateTime dateTime = new DateTime(createdDate, DateTimeZone.UTC);
-        return dateTime.getMillis();
+        if (createdDate.equalsIgnoreCase("") || createdDate == null) {
+            return 0L;
+        } else {
+            DateTime dateTime = new DateTime(createdDate, DateTimeZone.UTC);
+            return dateTime.getMillis();
+        }
     }
 
     public static boolean isContaineString(String values) {

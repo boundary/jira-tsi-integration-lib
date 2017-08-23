@@ -8,7 +8,7 @@
         "tsiApiToken": "<Input TSI Api Token>",
         "retryConfig": 3,
         "waitMsBeforeRetry": 5000,
-        "protocalType": "http",
+        "protocolType": "http",
         "startDateTime": "2005-02-06 00:00",
         "endDateTime": "2017-08-07 00:00"
     },
