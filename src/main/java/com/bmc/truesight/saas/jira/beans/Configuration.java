@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class Configuration {
 
     private String jiraHostName;
-    private Integer jiraPort;
+    private String jiraPort;
     private String jiraUserName;
     private String jiraPassword;
     private String tsiEventEndpoint;
@@ -27,14 +27,14 @@ public class Configuration {
     private Date endDateTime;
     private Integer retryConfig;
     private Integer waitMsBeforeRetry;
-    private String protocalType;
+    private String protocolType;
 
-    public String getProtocalType() {
-        return protocalType;
+    public String getProtocolType() {
+        return protocolType;
     }
 
-    public void setProtocalType(String protocalType) {
-        this.protocalType = protocalType;
+    public void setProtocolType(String protocolType) {
+        this.protocolType = protocolType;
     }
 
     public Date getEndDateTime() {
@@ -52,12 +52,10 @@ public class Configuration {
     public void setJiraHostName(String jiraHostName) {
         this.jiraHostName = jiraHostName;
     }
-
-    public Integer getJiraPort() {
+    public String getJiraPort() {
         return jiraPort;
     }
-
-    public void setJiraPort(Integer jiraPort) {
+    public void setJiraPort(String jiraPort) {
         this.jiraPort = jiraPort;
     }
 

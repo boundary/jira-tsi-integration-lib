@@ -33,14 +33,16 @@ public class GenericTemplateValidator implements TemplateValidator {
                 || config.getTsiApiToken().isEmpty()
                 || (config.getChunkSize() <= 0)
                 || (config.getRetryConfig() < 0)
-                || (config.getWaitMsBeforeRetry() <= 0)) {
+                || (config.getWaitMsBeforeRetry() <= 0)
+                || (config.getStartDateTime() == null || (config.getStartDateTime() != null && StringUtils.isEmpty(config.getStartDateTime().toString())))
+                || (config.getEndDateTime() == null || (config.getEndDateTime() != null && StringUtils.isEmpty(config.getEndDateTime().toString())))) {
             throw new ValidationException(StringUtil.format(Constants.CONFIG_VALIDATION_FAILED, new Object[]{}));
         }
-        
-        if (template.getFilter() == null && template.getFilter().size()>=0) {
+
+        if (template.getFilter() == null && template.getFilter().size() >= 0) {
             throw new ValidationException(StringUtil.format(Constants.FILTER_CONFIG_NOT_FOUND, new Object[]{payload.getSeverity()}));
         }
-        // validate payload configuration
+        // validate Title configuration
         if (payload.getTitle() != null && payload.getTitle().startsWith("@") && !fieldItemMap.containsKey(payload.getTitle())) {
             throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING,
                     new Object[]{payload.getTitle()}));
@@ -66,6 +68,12 @@ public class GenericTemplateValidator implements TemplateValidator {
             }
             if (properties.get(key).startsWith("@") && !fieldItemMap.containsKey(properties.get(key))) {
                 throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{properties.get(key)}));
+            }
+            if (key.equalsIgnoreCase(Constants.APPLICATION_ID)) {
+                if (StringUtil.isValidValue(properties.get(key))) {
+                } else {
+                    throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_INVALID, new Object[]{key.trim()}));
+                }
             }
         }
 

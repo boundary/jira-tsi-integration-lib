@@ -63,4 +63,23 @@ public class StringUtil {
         return isAllowed;
 
     }
+
+    public static boolean isValidValue(String inputString) {
+        String[] strlCharactersArray = new String[inputString.length()];
+        for (int i = 0; i < inputString.length(); i++) {
+            strlCharactersArray[i] = Character
+                    .toString(inputString.charAt(i));
+        }
+        int count = 0;
+        for (String strlCharactersArray1 : strlCharactersArray) {
+            if (Constants.SPECIAL_CHARACTOR.contains(strlCharactersArray1)) {
+                count++;
+            }
+        }
+        if (inputString != null && count == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

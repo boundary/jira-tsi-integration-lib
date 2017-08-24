@@ -54,7 +54,7 @@ public class Constants {
     public static final String CONFIG_END_DATE_CONDITION_FIELDS = "endDateTime";
     public static final String JIRA_TEMPLATE_PATH = "jiraDefaultTemplate.json";
     public static final String JIRA_NONE_FIELD = "fields=*none";
-    public static final String CONFIG_PROTOCAL_TYPE = "protocalType";
+    public static final String CONFIG_PROTOCAL_TYPE = "protocolType";
     //Messages
     public static final String CONFIG_FILE_NOT_FOUND = "Could not read the configuration file from location({0}) or it has different encoding than UTF8";
     public static final String CONFIG_FILE_NOT_VALID = "The configuration json is not a valid JSON,{0})";
@@ -90,4 +90,9 @@ public class Constants {
     public static final String FIELD_FETCH_KEY = "key";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_VALUE = "value";
+    public static final String APPLICATION_ID="app_id";
+    public static final String APPLICATION_NAME_INVALID = "The application \"{0}\" is not a valid , Only AlphaNumeric, Hyphen  and Underscore are allowed characters in the application name.";
+    public static final String SPECIAL_CHARACTOR="!#$%&'()*+,./:;<=>?@[]^`{|}~#!@$%^&*(){}?><";
+    public static String JIRA_TEMPLATE_FILE_NAME = "jiraDefaultTemplate.json";
+    public static String JQL_QUERY_FIELD="jqlQuery"; 
 }
