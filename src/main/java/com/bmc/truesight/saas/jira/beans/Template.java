@@ -16,10 +16,20 @@ public class Template {
     private TSIEvent eventDefinition;
     private Map<String, FieldItem> FieldItemMap;
     private Map<String, List<String>> filter;
+    private String jqlQuery;
+
+    public String getJqlQuery() {
+        return jqlQuery;
+    }
+
+    public void setJqlQuery(String jqlQuery) {
+        this.jqlQuery = jqlQuery;
+    }
 
     public Map<String, List<String>> getFilter() {
         return filter;
     }
+
     public void setFilter(Map<String, List<String>> filter) {
         this.filter = filter;
     }

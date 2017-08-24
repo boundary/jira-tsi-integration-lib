@@ -83,7 +83,6 @@ public class GenericTemplatePreParser implements TemplatePreParser {
 
                 //Setting Config chunk size as constant
                 config.setChunkSize(Constants.CONFIG_CHUNK_SIZE);
-
                 JsonNode retryNode = configuration.get(Constants.CONFIG_RETRY_NODE_NAME);
                 if (retryNode != null) {
                     config.setRetryConfig(retryNode.asInt());
@@ -155,6 +154,10 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 }
 
             }
+        }
+        JsonNode jqlQuery = rootNode.get(Constants.JQL_QUERY_FIELD);
+        if (jqlQuery != null) {
+            template.setJqlQuery(jqlQuery.asText());
         }
         template.setFilter(filterItemMap);
         return template;

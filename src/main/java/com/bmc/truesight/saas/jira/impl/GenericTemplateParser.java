@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -77,6 +76,7 @@ public class GenericTemplateParser implements TemplateParser {
         String configString;
         JsonNode configuration = rootNode.get("config");
         JsonNode filterConfiguration = rootNode.get("filter");
+        JsonNode jqlQuerys = rootNode.get("jqlQuery");
         Configuration config = null;
         Filter filter = null;
         if (configuration != null) {
@@ -130,7 +130,9 @@ public class GenericTemplateParser implements TemplateParser {
         } else {
             log.trace("eventDefinition field not found, falling back to default values while parsing");
         }
-
+        if (jqlQuerys != null) {
+            defaultTemplate.setJqlQuery(jqlQuerys.asText());
+        }
         // Iterate over the properties and if it starts with '@', put it to
         // itemValueMap
         Iterator<Entry<String, JsonNode>> nodes = rootNode.fields();
