@@ -162,4 +162,47 @@ public class JiraAPI {
         }
         return typeOfIssues;
     }
+
+    public static String getServerDate(final String finalUrl, final String basicAuthCode, Configuration config) throws ParsingException {
+        JsonNode responseNode = null;
+        String serverTime = null;
+        HttpClient httpClient = null;
+        boolean isSuccessful = false;
+        int retryCount = 0;
+        while (!isSuccessful && retryCount <= config.getRetryConfig()) {
+            try {
+                httpClient = HttpClientBuilder.create().build();
+                HttpGet httpGet = new HttpGet(finalUrl);
+                httpGet.addHeader("Authorization", Constants.JIRA_BASIC + basicAuthCode);
+                httpGet.addHeader("Content-Type", "application/json");
+                httpGet.addHeader("accept", "application/json");
+                httpGet.addHeader("User-Agent", "JiraIntegration");
+                HttpResponse response = httpClient.execute(httpGet);
+                String responce = EntityUtils.toString(response.getEntity());
+                ObjectMapper objectMapper = new ObjectMapper();
+                responseNode = objectMapper.readTree(responce);
+                if (!responseNode.isNull()) {
+                    serverTime = responseNode.get(Constants.SERVER_CURRENT_TIME_FIELD).asText();
+                }
+                return serverTime;
+            } catch (IOException | ParseException ex) {
+                if (retryCount < config.getRetryConfig()) {
+                    retryCount++;
+                    try {
+                        System.err.println("[Retry  {} ], Waiting for {} sec before trying again ......" + retryCount);
+                        Thread.sleep(config.getWaitMsBeforeRetry());
+                    } catch (InterruptedException e1) {
+                        System.err.println("Thread interrupted ......");
+                    }
+                    continue;
+                } else {
+                    throw new ParsingException(StringUtil.format(Constants.AUTHENTICATED_FAILED, new Object[]{ex.getMessage()}));
+
+                }
+
+            }
+        }
+
+        return serverTime;
+    }
 }

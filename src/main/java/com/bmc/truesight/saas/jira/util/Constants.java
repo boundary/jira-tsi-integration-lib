@@ -91,8 +91,13 @@ public class Constants {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_VALUE = "value";
     public static final String APPLICATION_ID="app_id";
-    public static final String APPLICATION_NAME_INVALID = "The application \"{0}\" is not a valid , Only AlphaNumeric, Hyphen  and Underscore are allowed characters in the application name.";
-    public static final String SPECIAL_CHARACTOR="!#$%&'()*+,./:;<=>?@[]^`{|}~#!@$%^&*(){}?><";
+    public static final String APPLICATION_NAME_INVALID = "The application \"{0}\" is not a valid , Only AlphaNumeric, Hyphen, Colon, Dot, Percentage, Star, Slash, at(@)  and Underscore are allowed characters in the application name.";
+    public static final String SPECIAL_CHARACTOR="!$%&'()+,;<=>?[]^`{|}~";
     public static String JIRA_TEMPLATE_FILE_NAME = "jiraDefaultTemplate.json";
-    public static String JQL_QUERY_FIELD="jqlQuery"; 
+    public static String JQL_QUERY_FIELD="jqlQuery";
+    public static String HOST="Host";
+    public static int APPLICATION_LENGTH=100;
+    public static final String APPLICATION_LENGTH_MEG = "The application \"{0}\" is not a valid , Maximum allowed characters length in apllication name/id is (100 characters)";
+    public static final String JIRA_SERVERINFO_API="rest/api/2/serverInfo";
+    public static final String SERVER_CURRENT_TIME_FIELD="serverTime";
 }
