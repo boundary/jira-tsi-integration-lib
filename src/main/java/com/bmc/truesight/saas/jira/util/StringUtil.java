@@ -82,4 +82,15 @@ public class StringUtil {
             return false;
         }
     }
+
+    public static boolean isValidApplicationIdlength(String applicationId) {
+        boolean isValidId = true;
+        if (applicationId != null) {
+            if (applicationId.length() <= Constants.APPLICATION_LENGTH) {
+            } else {
+                isValidId = false;
+            }
+        }
+        return isValidId;
+    }
 }

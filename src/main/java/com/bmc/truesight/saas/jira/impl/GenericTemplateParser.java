@@ -242,9 +242,7 @@ public class GenericTemplateParser implements TemplateParser {
                 jiraFields = JiraAPI.getTypeFields(client);
                 fields.put(Constants.APPLICATION_ID, Constants.APPLICATION_ID);
                 fields.put(Constants.FIELD_FETCH_KEY, Constants.FIELD_FETCH_KEY);
-                fields.put(Constants.FIELD_ID, Constants.FIELD_ID);
                 fields.put(Constants.FILED_KEY, Constants.FILED_KEY);
-                fields.put(Constants.ID, Constants.ID);
                 fields.putAll(jiraFields);
                 Map<String, FieldItem> finalFieldItem = new HashMap<>();
                 for (Map.Entry<String, FieldItem> entry : defaultTemplate.getFieldItemMap().entrySet()) {

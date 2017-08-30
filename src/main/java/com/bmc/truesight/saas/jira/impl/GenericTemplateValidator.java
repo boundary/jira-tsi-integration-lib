@@ -74,6 +74,10 @@ public class GenericTemplateValidator implements TemplateValidator {
                 } else {
                     throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_INVALID, new Object[]{key.trim()}));
                 }
+                if (StringUtil.isValidApplicationIdlength(properties.get(key))) {
+                } else {
+                    throw new ValidationException(StringUtil.format(Constants.APPLICATION_LENGTH_MEG, new Object[]{key.trim()}));
+                }
             }
         }
 
@@ -85,7 +89,6 @@ public class GenericTemplateValidator implements TemplateValidator {
             throw new ValidationException(
                     StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{payload.getStatus()}));
         }
-
         if (payload.getCreatedAt() != null && payload.getCreatedAt().startsWith("@") && !fieldItemMap.containsKey(payload.getCreatedAt())) {
             throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{payload.getCreatedAt()}));
         }

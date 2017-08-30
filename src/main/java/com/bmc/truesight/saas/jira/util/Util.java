@@ -84,7 +84,7 @@ public class Util {
         if (date == null) {
             return jiraDateAndTimeFormat;
         } else {
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+            //formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             jiraDateAndTimeFormat = formatter.format(date);
         }
         return jiraDateAndTimeFormat;
@@ -101,5 +101,15 @@ public class Util {
 
     public static boolean isContaineString(String values) {
         return values.contains(Constants.CUSTOME_FIELD_VALUE);
+    }
+
+    public static boolean isCreatedDateAndUpdateAreSame(String createdDate, String updatedDate) {
+        boolean isSame = false;
+        CachedDateTime createDate = new CachedDateTime(new DateTime(createdDate));
+        CachedDateTime updateDate = new CachedDateTime(new DateTime(updatedDate));
+        if (createDate.get().getMillis() == updateDate.get().getMillis()) {
+            isSame = true;
+        }
+        return isSame;
     }
 }

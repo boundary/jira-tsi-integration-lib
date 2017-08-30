@@ -65,9 +65,9 @@ public class JiraEntryEventAdapter {
 
         // valiadting source
         EventSource source = event.getSource();
-        source.setName(getValueFromEntry(template, entry, source.getName()));
-        source.setType(getValueFromEntry(template, entry, source.getType()));
-        source.setRef(getValueFromEntry(template, entry, source.getRef()));
+        source.setName(template.getConfig().getJiraHostName());
+        source.setType(Constants.HOST);
+        source.setRef(template.getConfig().getJiraHostName());
 
         EventSource sender = event.getSender();
         sender.setName(getValueFromEntry(template, entry, sender.getName()));
