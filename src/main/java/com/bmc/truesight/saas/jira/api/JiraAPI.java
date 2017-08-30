@@ -163,9 +163,9 @@ public class JiraAPI {
         return typeOfIssues;
     }
 
-    public static String getServerDate(final String finalUrl, final String basicAuthCode, Configuration config) throws ParsingException {
+    public static String getServerTimeZone(final String finalUrl, final String basicAuthCode, Configuration config) throws ParsingException {
         JsonNode responseNode = null;
-        String serverTime = null;
+        String serverTimezone = null;
         HttpClient httpClient = null;
         boolean isSuccessful = false;
         int retryCount = 0;
@@ -182,9 +182,10 @@ public class JiraAPI {
                 ObjectMapper objectMapper = new ObjectMapper();
                 responseNode = objectMapper.readTree(responce);
                 if (!responseNode.isNull()) {
-                    serverTime = responseNode.get(Constants.SERVER_CURRENT_TIME_FIELD).asText();
+                    serverTimezone = responseNode.get(Constants.SERVER_CURRENT_TIME_FIELD).asText();
+                    serverTimezone = serverTimezone.substring(serverTimezone.length() - 5);
                 }
-                return serverTime;
+                return serverTimezone;
             } catch (IOException | ParseException ex) {
                 if (retryCount < config.getRetryConfig()) {
                     retryCount++;
@@ -203,6 +204,6 @@ public class JiraAPI {
             }
         }
 
-        return serverTime;
+        return serverTimezone;
     }
 }
