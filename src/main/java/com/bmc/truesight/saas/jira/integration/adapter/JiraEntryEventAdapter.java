@@ -5,18 +5,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bmc.truesight.saas.jira.beans.FieldItem;
-import com.bmc.truesight.saas.jira.beans.JIRAEventResponse;
+import com.bmc.truesight.saas.jira.beans.JiraEventResponse;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.util.BuiltInFields;
 import com.bmc.truesight.saas.jira.util.Constants;
-import com.bmc.truesight.saas.jira.util.StringUtil;
 import com.bmc.truesight.saas.jira.util.Util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,9 +65,9 @@ public class JiraEntryEventAdapter {
 
         // valiadting source
         EventSource source = event.getSource();
-        source.setName(template.getConfig().getJiraHostName());
-        source.setType(Constants.HOST);
-        source.setRef(template.getConfig().getJiraHostName());
+        source.setName(getValueFromEntry(template, entry, source.getName()));
+        source.setType(getValueFromEntry(template, entry, source.getType()));
+        source.setRef(getValueFromEntry(template, entry, source.getRef()));
 
         EventSource sender = event.getSender();
         sender.setName(getValueFromEntry(template, entry, sender.getName()));
@@ -94,8 +94,8 @@ public class JiraEntryEventAdapter {
                 if (!jsonNode.get(fieldItem.getFieldId()).isMissingNode()) {
                     if (jsonNode.get(fieldItem.getFieldId()).isContainerNode()) {
                         if (!jsonNode.get(fieldItem.getFieldId()).isNull()) {
-                            if (Util.isContaineString(fieldItem.getFieldId())) {
-                                value = getCustomeFiledValues(jsonNode.get(fieldItem.getFieldId()));
+                            if (Util.isCustomField(fieldItem.getFieldId())) {
+                                value = getCustomFieldValue(jsonNode.get(fieldItem.getFieldId()));
                             } else if (BuiltInFields.COMPONENTS.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.VERSION.getField().equalsIgnoreCase(fieldItem.getFieldId()) || BuiltInFields.FIXVERSION.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
                                 value = getMultipleValues(jsonNode.get(fieldItem.getFieldId()));
                             } else if (BuiltInFields.LABLES.getField().equalsIgnoreCase(fieldItem.getFieldId())) {
@@ -119,18 +119,37 @@ public class JiraEntryEventAdapter {
                 log.trace("Not able to find the field {}" + ex.getMessage());
                 return value;
             }
+        } else if (placeholder.startsWith("#")) {
+            Field fieldItem;
+            String val = "";
+            try {
+                fieldItem = template.getConfig().getClass().getDeclaredField(placeholder.substring(1));
+                if (fieldItem != null) {
+                    fieldItem.setAccessible(true);
+                    val = fieldItem.get(template.getConfig()).toString();
+                }
+            } catch (NoSuchFieldException e) {
+                log.error("There is no field \"{}\" in config. please review the mapping", placeholder.substring(1));
+            } catch (SecurityException e) {
+                log.error("Cannot acceess field \"{}\". {}", placeholder.substring(1), e.getMessage());
+            } catch (IllegalArgumentException e) {
+                log.error("Cannot get value for the field \"{}\". {}", placeholder.substring(1), e.getMessage());
+            } catch (IllegalAccessException e) {
+                log.error("Cannot get value for the field \"{}\". {}", placeholder.substring(1), e.getMessage());
+            }
+            return val;
         } else {
             return placeholder;
         }
     }
 
-    public JIRAEventResponse eventList(JsonNode responseIssuesNode, Template template) {
+    public JiraEventResponse eventList(JsonNode responseIssuesNode, Template template) {
         List<TSIEvent> tsiValidEventList = new ArrayList<>();
         List<TSIEvent> invalidEventList = new ArrayList<>();
-        JIRAEventResponse response = new JIRAEventResponse();
+        JiraEventResponse response = new JiraEventResponse();
         for (JsonNode rootnode : responseIssuesNode) {
             TSIEvent event = convertEntryToEvent(template, rootnode);
-            if (StringUtil.isObjectJsonSizeAllowed(event)) {
+            if (Util.isObjectJsonSizeAllowed(event)) {
                 tsiValidEventList.add(event);
             } else {
                 invalidEventList.add(event);
@@ -210,7 +229,7 @@ public class JiraEntryEventAdapter {
         return value.toString();
     }
 
-    private String getCustomeFiledValues(JsonNode jsonNode) {
+    private String getCustomFieldValue(JsonNode jsonNode) {
         StringBuilder value = new StringBuilder();
         Set<String> treeSet = new TreeSet<>();
         boolean isMultiArray = true;
@@ -222,7 +241,7 @@ public class JiraEntryEventAdapter {
                 treeSet.add(jsonNode.get(Constants.FIELD_VALUE).asText());
                 isMultiArray = false;
             } catch (Exception ex) {
-                log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
+                log.trace("Not able to find the custom field and ignore it {} " + ex.getMessage());
             }
             value.append(treeSet);
             if (isMultiArray) {
@@ -232,7 +251,7 @@ public class JiraEntryEventAdapter {
                     List<String> condList = obReader.readValue(jsonNode);
                     value.append(condList);
                 } catch (Exception ex) {
-                    log.trace("Not able to find the custome field and ignore it {} " + ex.getMessage());
+                    log.trace("Not able to find the custom field and ignore it {} " + ex.getMessage());
                 }
             }
 

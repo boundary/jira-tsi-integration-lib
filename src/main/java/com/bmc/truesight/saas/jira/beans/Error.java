@@ -1,4 +1,4 @@
-package com.bmc.truesight.saas.remedy.integration.beans;
+package com.bmc.truesight.saas.jira.beans;
 
 public class Error {
 

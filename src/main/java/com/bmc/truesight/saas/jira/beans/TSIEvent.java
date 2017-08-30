@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TSIEvent implements java.io.Serializable{
+public class TSIEvent implements java.io.Serializable {
 
     private static final long serialVersionUID = 8677796325462643853L;
 
@@ -108,11 +108,11 @@ public class TSIEvent implements java.io.Serializable{
         this.properties = properties;
     }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

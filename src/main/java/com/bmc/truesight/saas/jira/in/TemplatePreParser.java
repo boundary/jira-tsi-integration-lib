@@ -11,6 +11,7 @@ public interface TemplatePreParser {
      * function should be called to have default configuration values already
      * available, The explicit configuration is passed in
      * {@link TemplateParser}, which overrides these values.
+     *
      * @return {@link Template}
      * @throws ParsingException Throws this exception if default JSON parsing is
      * not successful

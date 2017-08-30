@@ -1,38 +1,39 @@
 package com.bmc.truesight.saas.jira.impl;
 
-import com.atlassian.jira.rest.client.api.JiraRestClient;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bmc.truesight.saas.jira.api.JiraAPI;
 import com.bmc.truesight.saas.jira.beans.Configuration;
 import com.bmc.truesight.saas.jira.beans.FieldItem;
 import com.bmc.truesight.saas.jira.beans.Filter;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
+import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bmc.truesight.saas.jira.in.TemplateParser;
 import com.bmc.truesight.saas.jira.util.Constants;
-import com.bmc.truesight.saas.jira.util.StringUtil;
+import com.bmc.truesight.saas.jira.util.Util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Generic Template Parser
  *
- * @author Santosh Patil
+ * @author Santosh Patil,vitiwari
  *
  */
 public class GenericTemplateParser implements TemplateParser {
@@ -57,7 +58,7 @@ public class GenericTemplateParser implements TemplateParser {
         try {
             configJson = FileUtils.readFileToString(new File(fileName), "UTF8");
         } catch (IOException e) {
-            throw new ParsingException(StringUtil.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{fileName}));
+            throw new ParsingException(Util.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{fileName}));
         }
         return parse(defaultTemplate, configJson);
     }
@@ -69,7 +70,7 @@ public class GenericTemplateParser implements TemplateParser {
         try {
             rootNode = mapper.readTree(configJson);
         } catch (IOException e) {
-            throw new ParsingException(StringUtil.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{configJson, e.getMessage()}));
+            throw new ParsingException(Util.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{configJson, e.getMessage()}));
         }
 
         // Read the config details and map to pojo
@@ -84,7 +85,7 @@ public class GenericTemplateParser implements TemplateParser {
                 configString = mapper.writeValueAsString(configuration);
                 config = mapper.readValue(configString, Configuration.class);
             } catch (IOException e) {
-                throw new ParsingException(StringUtil.format(Constants.CONFIG_PROPERTY_NOT_VALID, new Object[]{e.getMessage()}));
+                throw new ParsingException(Util.format(Constants.CONFIG_PROPERTY_NOT_VALID, new Object[]{e.getMessage()}));
             }
             Configuration defaultConfig = defaultTemplate.getConfig();
             updateConfig(defaultConfig, config);
@@ -122,7 +123,7 @@ public class GenericTemplateParser implements TemplateParser {
                 String payloadString = mapper.writeValueAsString(payloadNode);
                 event = mapper.readValue(payloadString, TSIEvent.class);
             } catch (IOException e) {
-                throw new ParsingException(StringUtil.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{e.getMessage()}));
+                throw new ParsingException(Util.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{e.getMessage()}));
             }
             TSIEvent defaultEvent = defaultTemplate.getEventDefinition();
             updateEventDefinition(defaultEvent, event);
@@ -146,7 +147,7 @@ public class GenericTemplateParser implements TemplateParser {
                     fieldItemMap.put(entry.getKey(), placeholderDefinition);
                 } catch (IOException e) {
                     throw new ParsingException(
-                            StringUtil.format(Constants.PLACEHOLDER_PROPERTY_NOT_CORRECT, new Object[]{entry.getKey()}));
+                            Util.format(Constants.PLACEHOLDER_PROPERTY_NOT_CORRECT, new Object[]{entry.getKey()}));
                 }
             }
         }
@@ -179,15 +180,18 @@ public class GenericTemplateParser implements TemplateParser {
         if (config.getEndDateTime() != null) {
             defaultConfig.setEndDateTime(config.getEndDateTime());
         }
-        if (config.getProtocolType() != null) {
-            defaultConfig.setProtocolType(config.getProtocolType());
-        }
         //Disabled ability to override from the user 
-        /* if (config.getChunkSize() != null) {
+        if (config.getChunkSize() != null) {
             defaultConfig.setChunkSize(config.getChunkSize());
-        }*/
+        }
+        if (config.getThreadCount() != null) {
+            defaultConfig.setThreadCount(config.getThreadCount());
+        }
         if (config.getRetryConfig() != null) {
             defaultConfig.setRetryConfig(config.getRetryConfig());
+        }
+        if (config.getProtocolType() != null) {
+            defaultConfig.setProtocolType(config.getProtocolType());
         }
         if (config.getWaitMsBeforeRetry() != null) {
             defaultConfig.setWaitMsBeforeRetry(config.getRetryConfig());
@@ -232,59 +236,65 @@ public class GenericTemplateParser implements TemplateParser {
     }
 
     @Override
-    public Template ignoreFields(Template defaultTemplate, final String hostName, final String userName, final String password, final String portNumber, final String protocolType) {
-        try {
-            Map<String, String> fields = new HashMap<>();
-            JiraRestClient client = JiraAPI.getJiraRestClient(hostName, portNumber, userName, password, protocolType);
-            boolean isValid = JiraAPI.isValidCredentials(client, userName, hostName);
-            if (isValid) {
-                Map<String, String> jiraFields = new HashMap<>();
-                jiraFields = JiraAPI.getTypeFields(client);
-                fields.put(Constants.APPLICATION_ID, Constants.APPLICATION_ID);
-                fields.put(Constants.FIELD_FETCH_KEY, Constants.FIELD_FETCH_KEY);
-                fields.put(Constants.FILED_KEY, Constants.FILED_KEY);
-                fields.putAll(jiraFields);
-                Map<String, FieldItem> finalFieldItem = new HashMap<>();
-                for (Map.Entry<String, FieldItem> entry : defaultTemplate.getFieldItemMap().entrySet()) {
-                    FieldItem fieldItem = entry.getValue();
-                    if (fields.containsKey(fieldItem.getFieldId())) {
-                        finalFieldItem.put(entry.getKey(), entry.getValue());
-                    }
+    public Template ignoreFields(Template template) throws JiraApiInstantiationFailedException {
+        Map<String, String> fields = new HashMap<>();
+        Configuration config = template.getConfig();
+        JiraAPI jiraAPI = JiraAPI.getInstance(template.getConfig());
+        boolean isValid = jiraAPI.isValidCredentials();
+        if (isValid) {
+            Map<String, String> jiraFields = new HashMap<>();
+            List<String> invalidFieldIdList = new ArrayList<>();
+            jiraFields = jiraAPI.getTypeFields();
+            fields.put(Constants.APPLICATION_ID, Constants.APPLICATION_ID);
+            fields.put(Constants.FIELD_FETCH_KEY, Constants.FIELD_FETCH_KEY);
+            fields.put(Constants.FILED_KEY, Constants.FILED_KEY);
+            fields.putAll(jiraFields);
+
+            //Invalid Field Mapping removal
+            Map<String, FieldItem> finalFieldMap = new HashMap<>();
+            for (Map.Entry<String, FieldItem> entry : template.getFieldItemMap().entrySet()) {
+                FieldItem fieldItem = entry.getValue();
+                if (fields.containsKey(fieldItem.getFieldId())) {
+                    finalFieldMap.put(entry.getKey(), entry.getValue());
+                } else {
+                    invalidFieldIdList.add(fieldItem.getFieldId());
                 }
-                defaultTemplate.setFieldItemMap(finalFieldItem);
-                Map<String, String> finalPropertiesFields = new HashMap<>();
-                for (Map.Entry<String, String> val : defaultTemplate.getEventDefinition().getProperties().entrySet()) {
-                    FieldItem fieldItem = finalFieldItem.get(val.getValue());
-                    if (fieldItem == null) {
-                        if (Constants.APPLICATION_ID.equalsIgnoreCase(val.getKey())) {
-                            finalPropertiesFields.put(val.getKey(), val.getValue());
-                        } else {
-                            log.info("Field Mapping is invalid hence ignoring it, property name is {} " + val.getKey());
-                        }
-                    } else {
-                        finalPropertiesFields.put(val.getKey(), val.getValue());
-                    }
-                }
-                FieldItem fieldItem = finalFieldItem.get(defaultTemplate.getEventDefinition().getCreatedAt());
-                if (fieldItem == null) {
-                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getCreatedAt());
-                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
-                }
-                FieldItem status = finalFieldItem.get(defaultTemplate.getEventDefinition().getStatus());
-                if (status == null) {
-                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getStatus());
-                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
-                }
-                FieldItem severity = finalFieldItem.get(defaultTemplate.getEventDefinition().getStatus());
-                if (severity == null) {
-                    FieldItem fieldItemVal = defaultTemplate.getFieldItemMap().get(defaultTemplate.getEventDefinition().getSeverity());
-                    log.info("Field Mapping is invalid hence ignoring it, property name is {} " + fieldItemVal.getFieldId());
-                }
-                defaultTemplate.getEventDefinition().setProperties(finalPropertiesFields);
             }
-        } catch (Exception ex) {
-            log.trace("Exception occured while featching fileds from JIRA {}" + ex.getMessage());
+            template.setFieldItemMap(finalFieldMap);
+
+            //Invalid Properties removal
+            Map<String, String> finalPropertiesFields = new HashMap<>();
+            for (Map.Entry<String, String> propertEntry : template.getEventDefinition().getProperties().entrySet()) {
+                if (propertEntry.getValue().startsWith("@")) {
+                    FieldItem fieldItem = finalFieldMap.get(propertEntry.getValue());
+                    if (fieldItem != null) {
+                        finalPropertiesFields.put(propertEntry.getKey(), propertEntry.getValue());
+                    } else {
+                        log.debug("{} property is ignored because field mapping has invalid jira field", propertEntry.getKey());
+                    }
+                } else {
+                    finalPropertiesFields.put(propertEntry.getKey(), propertEntry.getValue());
+                }
+            }
+
+            FieldItem fieldItem = finalFieldMap.get(template.getEventDefinition().getCreatedAt());
+            if (fieldItem == null) {
+                log.error("Field Mapping for \"createdAt\" does not exist on Jira, it would be ignored and set as current date on TSI");
+            }
+            FieldItem status = finalFieldMap.get(template.getEventDefinition().getStatus());
+            if (status == null) {
+                log.error("Field Mapping for \"status\"  does not exist on Jira, it would be ignored. Please correct the mapping.");
+            }
+            FieldItem severity = finalFieldMap.get(template.getEventDefinition().getSeverity());
+            if (severity == null) {
+                log.error("Field Mapping for \"severity\" does not exist on Jira, it would be ignored. Please correct the mapping.");
+            }
+            if (invalidFieldIdList.size() > 0) {
+                log.error("Following fields are not valid, please correct the field mapping. ({})", invalidFieldIdList);
+            }
+            template.getEventDefinition().setProperties(finalPropertiesFields);
         }
-        return defaultTemplate;
+
+        return template;
     }
 }
