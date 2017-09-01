@@ -1,14 +1,5 @@
 package com.bmc.truesight.saas.jira.impl;
 
-import com.bmc.truesight.saas.jira.beans.Configuration;
-import com.bmc.truesight.saas.jira.beans.FieldItem;
-import com.bmc.truesight.saas.jira.beans.TSIEvent;
-import com.bmc.truesight.saas.jira.beans.Template;
-import com.bmc.truesight.saas.jira.exception.ParsingException;
-import com.bmc.truesight.saas.jira.in.TemplatePreParser;
-import com.bmc.truesight.saas.jira.util.Constants;
-import com.bmc.truesight.saas.jira.util.StringUtil;
-import com.bmc.truesight.saas.jira.util.Util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +9,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.bmc.truesight.saas.jira.beans.Configuration;
+import com.bmc.truesight.saas.jira.beans.FieldItem;
+import com.bmc.truesight.saas.jira.beans.TSIEvent;
+import com.bmc.truesight.saas.jira.beans.Template;
+import com.bmc.truesight.saas.jira.exception.ParsingException;
+import com.bmc.truesight.saas.jira.in.TemplatePreParser;
+import com.bmc.truesight.saas.jira.util.Constants;
+import com.bmc.truesight.saas.jira.util.Util;
+import com.bmc.truesight.saas.jira.util.Util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,10 +30,12 @@ import com.fasterxml.jackson.databind.ObjectReader;
  * This class helps in preParsing the default master configurations and return
  * as a {@link Template} object.
  *
- * @author Santosh Patil
+ * @author Santosh Patil,vitiwari
  *
  */
 public class GenericTemplatePreParser implements TemplatePreParser {
+
+    private static final Logger log = LoggerFactory.getLogger(GenericTemplatePreParser.class);
 
     @Override
     public Template loadDefaults() throws ParsingException {
@@ -43,7 +47,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
             String configJson = getFile(Constants.JIRA_TEMPLATE_FILE_NAME);
             rootNode = mapper.readTree(configJson);
         } catch (IOException e) {
-            throw new ParsingException(StringUtil.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{e.getMessage()}));
+            throw new ParsingException(Util.format(Constants.CONFIG_FILE_NOT_VALID, new Object[]{e.getMessage()}));
         }
 
         // Read the config details and map to pojo
@@ -58,7 +62,13 @@ public class GenericTemplatePreParser implements TemplatePreParser {
 
                 JsonNode portNode = configuration.get(Constants.CONFIG_PORT_NODE_NAME);
                 if (portNode != null) {
-                    config.setJiraPort(portNode.asText());
+                    try {
+                        //Checking if it is a number
+                        Integer.parseInt(portNode.asText().trim());
+                        config.setJiraPort(portNode.asText().trim());
+                    } catch (NumberFormatException ex) {
+                        log.debug("default port is not a valid port, skipping the port setting");
+                    }
                 }
 
                 JsonNode userNode = configuration.get(Constants.CONFIG_USERNAME_NODE_NAME);
@@ -82,7 +92,18 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 }
 
                 //Setting Config chunk size as constant
-                config.setChunkSize(Constants.CONFIG_CHUNK_SIZE);
+                JsonNode chunkNode = configuration.get(Constants.CONFIG_CHUNKSIZE_NODE_NAME);
+                if (chunkNode != null) {
+                    Integer chunk = Integer.parseInt(chunkNode.asText());
+                    config.setChunkSize(chunk);
+                }
+
+                JsonNode threadsNode = configuration.get(Constants.CONFIG_THREADS_NODE_NAME);
+                if (threadsNode != null) {
+                    Integer thread = Integer.parseInt(threadsNode.asText());
+                    config.setThreadCount(thread);
+                }
+
                 JsonNode retryNode = configuration.get(Constants.CONFIG_RETRY_NODE_NAME);
                 if (retryNode != null) {
                     config.setRetryConfig(retryNode.asInt());
@@ -92,9 +113,9 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                 if (waitMsNode != null) {
                     config.setWaitMsBeforeRetry(waitMsNode.asInt());
                 }
-                JsonNode protocalType = configuration.get(Constants.CONFIG_PROTOCAL_TYPE);
-                if (protocalType != null) {
-                    config.setProtocolType(protocalType.asText());
+                JsonNode protocolType = configuration.get(Constants.CONFIG_PROTOCOL_TYPE);
+                if (protocolType != null) {
+                    config.setProtocolType(protocolType.asText());
                 }
                 String endDate = configuration.get(Constants.CONFIG_END_DATE_CONDITION_FIELDS).asText();
                 if (endDate != null) {
@@ -109,7 +130,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
 
             template.setConfig(config);
         } catch (Exception e) {
-            throw new ParsingException(StringUtil.format(Constants.CONFIG_PROPERTY_NOT_FOUND, new Object[]{e.getMessage()}));
+            throw new ParsingException(Util.format(Constants.CONFIG_PROPERTY_NOT_FOUND, new Object[]{e.getMessage()}));
         }
         //Read the payload details and map to pojo
         try {
@@ -118,7 +139,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
             TSIEvent event = mapper.readValue(payloadString, TSIEvent.class);
             template.setEventDefinition(event);
         } catch (IOException e) {
-            throw new ParsingException(StringUtil.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{}));
+            throw new ParsingException(Util.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{}));
         }
 
         // Iterate over the properties and if it starts with '@', put it to
@@ -133,7 +154,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                     FieldItem placeholderDefinition = mapper.readValue(placeholderNode, FieldItem.class);
                     fieldItemMap.put(entry.getKey(), placeholderDefinition);
                 } catch (IOException e) {
-                    throw new ParsingException(StringUtil.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{entry.getKey()}));
+                    throw new ParsingException(Util.format(Constants.PAYLOAD_PROPERTY_NOT_FOUND, new Object[]{entry.getKey()}));
                 }
             }
         }
@@ -150,7 +171,7 @@ public class GenericTemplatePreParser implements TemplatePreParser {
                     List<String> condList = obReader.readValue(entry.getValue());
                     filterItemMap.put(entry.getKey(), condList);
                 } catch (IOException ex) {
-                    throw new ParsingException(StringUtil.format(Constants.CONFIG_VALIDATION_FAILED, new Object[]{entry.getKey()}));
+                    throw new ParsingException(Util.format(Constants.CONFIG_VALIDATION_FAILED, new Object[]{entry.getKey()}));
                 }
 
             }

@@ -2,7 +2,7 @@ package com.bmc.truesight.saas.jira.beans;
 
 import java.util.List;
 
-public class JIRAEventResponse {
+public class JiraEventResponse {
 
     private List<TSIEvent> validEventList;
     private List<TSIEvent> invalidEventList;

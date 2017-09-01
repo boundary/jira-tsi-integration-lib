@@ -8,6 +8,8 @@
         "tsiApiToken": "<Input TSI Api Token>",
         "retryConfig": 3,
         "waitMsBeforeRetry": 5000,
+        "chunkSize": 1000,
+        "threadCount": 10,
         "protocolType": "http",
         "startDateTime": "2005-02-06 00:00",
         "endDateTime": "2017-08-29 22:00"
@@ -39,16 +41,15 @@
             "Description": "@DESCRIPTION",
             "LastViewedDate": "@LASTVIEWEDDATE",
             "ProjectName": "@PROJECTNAME",
-            "IssueCreatedDate":"@CREATED_AT",
+            "IssueCreatedDate": "@CREATED_AT",
             "app_id": "Jira TSI Integration"
-
         },
         "createdAt": "@CREATED_AT",
         "eventClass": "@ISSUE_TYPE",
         "source": {
-            "name": "Jira",
-            "type": "Jira",
-            "ref": "Jira"
+            "name": "#jiraHostName",
+            "type": "host",
+            "ref": "#jiraHostName"
         },
         "sender": {
             "name": "Jira",
@@ -104,5 +105,4 @@
     "@PROJECTNAME": {
         "fieldId": "project"
     }
-
 }

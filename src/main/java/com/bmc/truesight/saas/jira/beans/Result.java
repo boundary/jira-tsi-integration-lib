@@ -1,6 +1,5 @@
 package com.bmc.truesight.saas.jira.beans;
 
-import com.bmc.truesight.saas.remedy.integration.beans.Error;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

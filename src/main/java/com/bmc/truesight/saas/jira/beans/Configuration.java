@@ -21,6 +21,7 @@ public class Configuration {
     private String tsiEventEndpoint;
     private String tsiApiToken;
     private Integer chunkSize;
+    private Integer threadCount;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private Date startDateTime;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
@@ -52,9 +53,11 @@ public class Configuration {
     public void setJiraHostName(String jiraHostName) {
         this.jiraHostName = jiraHostName;
     }
+
     public String getJiraPort() {
         return jiraPort;
     }
+
     public void setJiraPort(String jiraPort) {
         this.jiraPort = jiraPort;
     }
@@ -121,6 +124,14 @@ public class Configuration {
 
     public void setWaitMsBeforeRetry(Integer waitMsBeforeRetry) {
         this.waitMsBeforeRetry = waitMsBeforeRetry;
+    }
+
+    public Integer getThreadCount() {
+        return threadCount;
+    }
+
+    public void setThreadCount(Integer threadCount) {
+        this.threadCount = threadCount;
     }
 
 }

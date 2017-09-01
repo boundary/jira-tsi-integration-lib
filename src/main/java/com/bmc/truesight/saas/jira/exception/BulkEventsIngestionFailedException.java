@@ -1,4 +1,4 @@
-package com.bmc.truesight.saas.remedy.integration.exception;
+package com.bmc.truesight.saas.jira.exception;
 
 public class BulkEventsIngestionFailedException extends Exception {
 

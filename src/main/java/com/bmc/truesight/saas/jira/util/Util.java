@@ -2,27 +2,31 @@ package com.bmc.truesight.saas.jira.util;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import org.apache.commons.codec.binary.Base64;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bmc.truesight.saas.jira.beans.TSIEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  *
- * @author Santosh Patil
+ * @author Santosh Patil,vitiwari
  * @Date 28-07-2017
  */
 public class Util {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final Logger log = LoggerFactory.getLogger(Util.class);
+
     Properties prop = new Properties();
     InputStream input = null;
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -31,40 +35,6 @@ public class Util {
         DateTime dateTime = new DateTime(dateString);
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         return DATE_FORMAT.format(dateTime);
-    }
-
-    public static String getURL(final String hostName, final String portNumber, final String userName, final String password, final String protocalType) {
-        StringBuilder uriBuilder = new StringBuilder();
-        uriBuilder.append(protocalType).append(Constants.COLON_DOUBLE_SLASH);
-        if (portNumber != null && !portNumber.equalsIgnoreCase("")) {
-            uriBuilder.append(hostName).append(Constants.COLON).append(portNumber).append(Constants.SLASH);
-        } else {
-            uriBuilder.append(hostName).append(Constants.SLASH);
-        }
-        return uriBuilder.toString();
-    }
-
-    public static String getAuthCode(final String userName, String password) {
-        byte[] encoded = Base64.encodeBase64((userName + ":" + password).getBytes());
-        return new String(encoded);
-    }
-
-    public static String jqlBuilder(final String url, final Integer maxResults, final Integer startAt, final String searchJql, final String fields) {
-        String searchString = null;
-        try {
-            if (fields != null) {
-                searchString = String
-                        .format(url + Constants.JIRA_SEARCH_API + "?" + fields + "&maxResults=" + maxResults + "&startAt=%d&jql=", startAt)
-                        + URLEncoder.encode(searchJql, "UTF-8");
-            } else {
-                searchString = String
-                        .format(url + Constants.JIRA_SEARCH_API + "?maxResults=" + maxResults + "&startAt=%d&jql=", startAt)
-                        + URLEncoder.encode(searchJql, "UTF-8");
-            }
-        } catch (UnsupportedEncodingException ex) {
-            java.util.logging.Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return searchString;
     }
 
     public static Date format(String dateString) throws ParseException {
@@ -78,18 +48,6 @@ public class Util {
         return value;
     }
 
-    public static String JiraformatedDateAndTime(Date date) throws ParseException {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        String jiraDateAndTimeFormat = null;
-        if (date == null) {
-            return jiraDateAndTimeFormat;
-        } else {
-            //formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            jiraDateAndTimeFormat = formatter.format(date);
-        }
-        return jiraDateAndTimeFormat;
-    }
-
     public static long convertIntoUTC(String createdDate) {
         if (createdDate.equalsIgnoreCase("") || createdDate == null) {
             return 0L;
@@ -99,17 +57,61 @@ public class Util {
         }
     }
 
-    public static boolean isContaineString(String values) {
-        return values.contains(Constants.CUSTOME_FIELD_VALUE);
+    public static boolean isCustomField(String value) {
+        return value.contains(Constants.CUSTOM_FIELD_PREFIX);
     }
 
-    public static boolean isCreatedDateAndUpdateAreSame(String createdDate, String updatedDate) {
-        boolean isSame = false;
-        CachedDateTime createDate = new CachedDateTime(new DateTime(createdDate));
-        CachedDateTime updateDate = new CachedDateTime(new DateTime(updatedDate));
-        if (createDate.get().getMillis() == updateDate.get().getMillis()) {
-            isSame = true;
-        }
-        return isSame;
+    public static String format(String template, Object[] args) {
+        MessageFormat fmt = new MessageFormat(template);
+        return fmt.format(args);
     }
+
+    public final static boolean isValidJavaIdentifier(String s) {
+        // an empty or null string cannot be a valid identifier
+        if (s == null || s.length() == 0) {
+            return false;
+        }
+        char[] c = s.toCharArray();
+        if (!Character.isJavaIdentifierStart(c[0]) || (c[0] == '$')) {
+            return false;
+        }
+        for (int i = 1; i < c.length; i++) {
+            if (!Character.isJavaIdentifierPart(c[i]) || (c[i] == '$')) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isObjectJsonSizeAllowed(TSIEvent event) {
+        boolean isAllowed = true;
+        if (event != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            String eventJson;
+            try {
+                eventJson = mapper.writeValueAsString(event);
+                final byte[] utf8Bytes = eventJson.getBytes("UTF-8");
+                if (utf8Bytes.length >= Constants.MAX_EVENT_SIZE_ALLOWED_BYTES) {
+                    isAllowed = false;
+                }
+            } catch (JsonProcessingException e) {
+                log.error("Event to json conversion has some exception, {}", new Object[]{e.getMessage()});
+            } catch (UnsupportedEncodingException e) {
+                log.error("Event to json conversion has some problem in encoding, {}", new Object[]{e.getMessage()});
+            }
+        }
+        return isAllowed;
+
+    }
+
+    public static boolean isValidValue(String inputString) {
+        for (char c : inputString.toCharArray()) {
+            if (Constants.SPECIAL_CHARACTOR.indexOf(c, 0) >= 0) {
+                return false;
+            }
+        };
+        return true;
+    }
+
 }
