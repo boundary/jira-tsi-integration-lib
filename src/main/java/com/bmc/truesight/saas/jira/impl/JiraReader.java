@@ -29,19 +29,24 @@ public class JiraReader {
 
     private final static Logger log = LoggerFactory.getLogger(JiraReader.class);
 
-    public boolean validateCredentials(Configuration config) throws JiraLoginFailedException, JiraApiInstantiationFailedException {
-        JiraAPI jiraAPI = new JiraAPI(config);
+    private Template template;
+    private JiraAPI jiraAPI;
+
+    public JiraReader(Template template) throws JiraApiInstantiationFailedException {
+        this.template = template;
+        this.jiraAPI = new JiraAPI(template.getConfig());
+    }
+
+    public boolean validateCredentials() throws JiraLoginFailedException, JiraApiInstantiationFailedException {
         boolean isValid = jiraAPI.isValidCredentials();
         return isValid;
     }
 
-    public JiraEventResponse readJiraTickets(Template template, int startFrom, int chunkSize, JiraEntryEventAdapter adapter) throws JiraReadFailedException, JiraApiInstantiationFailedException {
+    public JiraEventResponse readJiraTickets(int startFrom, int chunkSize, JiraEntryEventAdapter adapter) throws JiraReadFailedException, JiraApiInstantiationFailedException {
         Configuration config = template.getConfig();
         JiraEventResponse jiraResponse = null;
-        JiraAPI jiraAPI = new JiraAPI(config);
         String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
         log.debug("SearchQuery formed as ->{}", searchQuery);
-        String url = jiraAPI.getURL();
         String searchUrl = jiraAPI.getSearchUrl(chunkSize, startFrom, searchQuery, "");
         JsonNode response;
         try {
@@ -59,10 +64,9 @@ public class JiraReader {
         return jiraResponse;
     }
 
-    public int getAvailableRecordsCount(Template template) throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException {
+    public int getAvailableRecordsCount() throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException {
         Configuration config = template.getConfig();
         int recordsCount = 0;
-        JiraAPI jiraAPI = new JiraAPI(config);
         String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
         log.debug("SearchQuery formed as ->{}", searchQuery);
         String finalSearchUrl = jiraAPI.getSearchUrl(0, 0, searchQuery, Constants.JIRA_NONE_FIELD);
