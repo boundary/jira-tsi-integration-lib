@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
- * @author vitiwari
+ * @author Santosh Patil/vitiwari
  *
  */
 public class JiraReader {
@@ -39,8 +39,12 @@ public class JiraReader {
         Configuration config = template.getConfig();
         JiraEventResponse jiraResponse = null;
         JiraAPI jiraAPI = JiraAPI.getInstance(config);
-        String searchQuery;
-        searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
+        String searchQuery = null;
+        if (template.getJqlQuery() != null && !template.getJqlQuery().isEmpty()) {
+            searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
+        } else {
+            searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), null);
+        }
         log.debug("SearchQuery formed as ->{}", searchQuery);
         String url = jiraAPI.getURL();
         String searchUrl = jiraAPI.getSearchUrl(chunkSize, startFrom, searchQuery, "");
@@ -64,10 +68,13 @@ public class JiraReader {
         Configuration config = template.getConfig();
         int recordsCount = 0;
         JiraAPI jiraAPI = JiraAPI.getInstance(config);
-        String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
-        log.debug("SearchQuery formed as ->{}", searchQuery);
-        searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), null);
-        String finalSearchUrl = jiraAPI.getSearchUrl(0, 0, searchQuery, Constants.JIRA_NONE_FIELD);
+        String searchQuery = null;
+        if (template.getJqlQuery() != null && !template.getJqlQuery().isEmpty()) {
+            searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
+        } else {
+            searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), null);
+        }
+        String finalSearchUrl = jiraAPI.getSearchUrl(1, 1, searchQuery, Constants.JIRA_NONE_FIELD);
         log.debug("finalSearchUrl formed as ->{}", finalSearchUrl);
         try {
             JsonNode responseNode = jiraAPI.search(finalSearchUrl);

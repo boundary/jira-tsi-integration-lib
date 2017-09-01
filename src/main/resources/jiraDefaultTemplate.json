@@ -3,20 +3,20 @@
         "jiraHostName": "<hostName>",
         "jiraPort": "",
         "jiraUserName": "<UserName>",
-        "jiraPassword": "<password>",
+        "jiraPassword": "<Password>",
         "tsiEventEndpoint": "https://api.truesight.bmc.com/v1/events",
         "tsiApiToken": "<Input TSI Api Token>",
         "retryConfig": 3,
         "waitMsBeforeRetry": 5000,
         "chunkSize": 1000,
         "threadCount": 10,
-        "protocolType": "http",
+        "protocolType": "https",
         "startDateTime": "2005-02-06 00:00",
         "endDateTime": "2017-08-29 22:00"
     },
     "jqlQuery": "",
     "filter": {
-        "status": [],
+        "status": ["Closed", "Open", "Resolved"],
         "issueType": [],
         "priority": []
     },
