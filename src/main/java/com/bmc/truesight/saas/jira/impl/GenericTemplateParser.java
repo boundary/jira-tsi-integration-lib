@@ -238,8 +238,7 @@ public class GenericTemplateParser implements TemplateParser {
     @Override
     public Template ignoreFields(Template template) throws JiraApiInstantiationFailedException {
         Map<String, String> fields = new HashMap<>();
-        Configuration config = template.getConfig();
-        JiraAPI jiraAPI = JiraAPI.getInstance(template.getConfig());
+        JiraAPI jiraAPI = new JiraAPI(template.getConfig());
         boolean isValid = jiraAPI.isValidCredentials();
         if (isValid) {
             Map<String, String> jiraFields = new HashMap<>();

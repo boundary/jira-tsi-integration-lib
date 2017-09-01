@@ -10,11 +10,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
@@ -56,40 +58,26 @@ public class JiraAPI {
 
     private static final String JQL_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm";
 
-    private static JiraAPI instance = null;
-    private static String authCode;
-    private static Configuration config;
-    private static JiraRestClient jiraRestClient;
-    private static String serverTimeZone;
+    private String authCode;
+    private Configuration config;
+    private JiraRestClient jiraRestClient;
+    private String serverTimeZone;
 
-    private JiraAPI() {
-        super();
-    }
-
-    public static JiraAPI getInstance(Configuration configuration) throws JiraApiInstantiationFailedException {
-        if (instance == null) {
-            synchronized (JiraAPI.class) {
-                if (instance == null) {
-                    instance = new JiraAPI();
-                    config = configuration;
-                    authCode = instance.getAuthCode(configuration.getJiraUserName(), configuration.getJiraPassword());
-                    try {
-                        jiraRestClient = instance.getJiraRestClient();
-                    } catch (URISyntaxException e) {
-                        throw new JiraApiInstantiationFailedException("URI is not correct, Failed to create Jira REST client");
-                    } catch (Exception e) {
-                        throw new JiraApiInstantiationFailedException("Failed to create Jira REST client, " + e.getMessage());
-                    }
-                    try {
-                        serverTimeZone = instance.getServerTimeZone();
-                    } catch (ParsingException e) {
-                        throw new JiraApiInstantiationFailedException("Failed to get serverTimeZone, " + e.getMessage());
-                    }
-                    return instance;
-                }
-            }
-        }
-        return instance;
+    public JiraAPI(Configuration configuration) throws JiraApiInstantiationFailedException {
+         config = configuration;
+         authCode = this.getAuthCode(configuration.getJiraUserName(), configuration.getJiraPassword());
+         try {
+             jiraRestClient = this.getJiraRestClient();
+         } catch (URISyntaxException e) {
+             throw new JiraApiInstantiationFailedException("URI is not correct, Failed to create Jira REST client");
+         } catch (Exception e) {
+             throw new JiraApiInstantiationFailedException("Failed to create Jira REST client, " + e.getMessage());
+         }
+         try {
+             serverTimeZone = this.getServerTimeZone();
+         } catch (ParsingException e) {
+             throw new JiraApiInstantiationFailedException("Failed to get serverTimeZone, " + e.getMessage());
+         }
     }
 
     private JiraRestClient getJiraRestClient() throws URISyntaxException {
