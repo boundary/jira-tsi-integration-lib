@@ -67,10 +67,8 @@ public class GenericTemplateValidator implements TemplateValidator {
                     if (!Constants.FINGERPRINT_EVENT_FIELDS.contains(field)) {
                         throw new ValidationException(Util.format(Constants.EVENT_FIELD_MISSING, new Object[]{field, Constants.FINGERPRINT_EVENT_FIELDS}));
                     }
-                } else {
-                    if (!payload.getProperties().containsKey(fpField)) {
-                        throw new ValidationException(Util.format(Constants.EVENT_PROPERTY_FIELD_MISSING, new Object[]{fpField}));
-                    }
+                } else if (!payload.getProperties().containsKey(fpField)) {
+                    throw new ValidationException(Util.format(Constants.EVENT_PROPERTY_FIELD_MISSING, new Object[]{fpField}));
                 }
             }
         }
@@ -89,12 +87,6 @@ public class GenericTemplateValidator implements TemplateValidator {
             }
             if (properties.get(key).startsWith("@") && !fieldItemMap.containsKey(properties.get(key))) {
                 throw new ValidationException(Util.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{properties.get(key)}));
-            }
-            if (key.equalsIgnoreCase(Constants.APPLICATION_ID)) {
-                if (Util.isValidValue(properties.get(key))) {
-                } else {
-                    throw new ValidationException(Util.format(Constants.APPLICATION_NAME_INVALID, new Object[]{key.trim()}));
-                }
             }
             if (properties.get(key).startsWith("#")) {
                 validateConfigField(config, properties.get(key).substring(1));

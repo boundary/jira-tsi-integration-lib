@@ -10,13 +10,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
@@ -110,7 +108,7 @@ public class JiraAPI {
             log.error("Authentication failed for host name {} , Response: Status Code {} ", config.getJiraHostName(), ex.getStatusCode().get());
             isValid = false;
         } catch (Exception ex) {
-            log.debug("Jira login failed {}", ex.getMessage());
+            log.debug("Jira validation failed {}", ex.getMessage());
             log.error("Something went wrong while logging into Jira, Login unsuccessful. Please run in debug mode to get more information");
             isValid = false;
         }
@@ -304,12 +302,11 @@ public class JiraAPI {
     }
 
     public String buildJQLQuery(Map<String, List<String>> filter, Date startDate, Date endDate, String jqlQuery) {
-
         StringBuilder searchQuery = new StringBuilder();
         StringBuilder finalSearchQuery = new StringBuilder();
         String startJqlDate = getJQLTimeFormat(startDate);
         String endJqlDate = getJQLTimeFormat(endDate);
-        searchQuery.append("updated >= '").append(startJqlDate).append("' and updated <= '").append(endJqlDate).append("' ORDER BY updated");
+        searchQuery.append("( updated >= '").append(startJqlDate).append("' and updated <= '").append(endJqlDate).append("') ORDER BY updated");
         int queryCounter = 0;
         if (jqlQuery == null || jqlQuery.isEmpty()) {
             for (Map.Entry<String, List<String>> entry : filter.entrySet()) {
@@ -341,50 +338,4 @@ public class JiraAPI {
         return DateTimeFormatter.ofPattern(JQL_TIMESTAMP_FORMAT).format(serverDateTime);
 
     }
-
-    /*public class SearchQueryBuilder {
-
-        public static String buildJQLQuery(Map<String, List<String>> filter, String startDate, String endDate, final String jqlQuery) throws ParseException {
-            StringBuilder searchQuery = new StringBuilder();
-            StringBuilder finalSearchQuery = new StringBuilder();
-            searchQuery.append("updated >= '").append(startDate)
-                    .append("' and updated <= '").append(endDate)
-                    .append("' ORDER BY updated");
-            int queryCounter = 0;
-            if (jqlQuery == null || jqlQuery.isEmpty()) {
-                for (Map.Entry<String, List<String>> entry : filter.entrySet()) {
-                    List<String> values = entry.getValue();
-                    if (values.size() > 0) {
-                        if (queryCounter == 0) {
-                            finalSearchQuery.append(entry.getKey()).append(Constants.IN_OPERATOR).append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values)).append(Constants.CLOSE_PRANETHESIS);
-                        } else {
-                            finalSearchQuery.append(Constants.JQL_AND_OPERATOR).append(entry.getKey()).append(Constants.IN_OPERATOR).append(Constants.OPEN_PRANETHESIS).append(fieldQuery(values)).append(Constants.CLOSE_PRANETHESIS);
-                        }
-                        queryCounter += 1;
-                    }
-                }
-                if (finalSearchQuery != null && queryCounter != 0) {
-                    finalSearchQuery.append(Constants.JQL_AND_OPERATOR).append(searchQuery.toString());
-                } else {
-                    finalSearchQuery.append(searchQuery.toString());
-                }
-            } else {
-                finalSearchQuery.append(jqlQuery).append(Constants.JQL_AND_OPERATOR).append(searchQuery.toString());
-            }
-            return finalSearchQuery.toString();
-        }
-
-        public static String fieldQuery(List<String> fieldQuery) {
-            StringBuilder query = new StringBuilder();
-            int fieldCount = 0;
-            for (String field : fieldQuery) {
-                if (fieldCount == 0) {
-                    query.append("'").append(field).append("'");
-                } else {
-                    query.append(",").append("'").append(field).append("'");
-                }
-                fieldCount += 1;
-            }
-            return query.toString();
-        }*/
 }

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
- * @author vitiwari
+ * @author Santosh Patil/vitiwari
  *
  */
 public class JiraReader {
@@ -39,7 +39,7 @@ public class JiraReader {
         Configuration config = template.getConfig();
         JiraEventResponse jiraResponse = null;
         JiraAPI jiraAPI = JiraAPI.getInstance(config);
-        String searchQuery;
+        String searchQuery = null;
         searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
         log.debug("SearchQuery formed as ->{}", searchQuery);
         String url = jiraAPI.getURL();
@@ -64,9 +64,8 @@ public class JiraReader {
         Configuration config = template.getConfig();
         int recordsCount = 0;
         JiraAPI jiraAPI = JiraAPI.getInstance(config);
-        String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
-        log.debug("SearchQuery formed as ->{}", searchQuery);
-        searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), null);
+        String searchQuery = null;
+        searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
         String finalSearchUrl = jiraAPI.getSearchUrl(0, 0, searchQuery, Constants.JIRA_NONE_FIELD);
         log.debug("finalSearchUrl formed as ->{}", finalSearchUrl);
         try {

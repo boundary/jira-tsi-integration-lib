@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bmc.truesight.saas</groupId>
     <artifactId>jira-tsi-integration-lib</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -13,18 +12,20 @@
         <maven.compilerplugin.version>3.6.1</maven.compilerplugin.version>
         <jackson.core.version>2.2.3</jackson.core.version>
         <commons.io.version>2.5</commons.io.version>
-        <maven.sourceplugin.version>2.4</maven.sourceplugin.version>
-        <maven.compilerplugin.version>3.5</maven.compilerplugin.version>
-        <maven.enforcerplugin.version>1.4.1</maven.enforcerplugin.version>
-        <maven.javadocplugin.version>2.10.4</maven.javadocplugin.version>
+        <!-- Plugin Versions -->
+        <maven-compiler-version>3.1</maven-compiler-version>
+        <maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
         <maven-gpg-plugin-version>1.5</maven-gpg-plugin-version>
+        
         <!-- java versions -->
-        <java.target.version>1.8</java.target.version>
-        <java.source.version>1.8</java.source.version>
+        <java-target-version>1.8</java-target-version>
+        <java-source-version>1.8</java-source-version>
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.atlassian.fugue</groupId>
+            <groupId>
+                com.atlassian.fugue
+            </groupId>
             <artifactId>fugue</artifactId>
             <version>2.2.1</version>
         </dependency>
@@ -33,74 +34,20 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.5</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
         <dependency>
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-rest-java-client-core</artifactId>
             <version>4.0.0</version>
-            <exclusions>
-                <!-- <exclusion>
-                        <groupId>com.atlassian.event</groupId>
-                        <artifactId>atlassian-event</artifactId>
-                </exclusion> -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.atlassian.util.concurrent</groupId>
-                    <artifactId>atlassian-util-concurrent</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.atlassian.httpclient</groupId>
-                    <artifactId>atlassian-httpclient-plugin</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-rest-java-client-api</artifactId>
             <version>4.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.util.concurrent</groupId>
-            <artifactId>atlassian-util-concurrent</artifactId>
-            <version>2.4.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>11.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.httpclient</groupId>
-            <artifactId>atlassian-httpclient-plugin</artifactId>
-            <version>0.23.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpmime</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -154,28 +101,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven.sourceplugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compilerplugin.version}</version>
-                <configuration>
-                    <source>${java.source.version}</source>
-                    <target>${java.target.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
@@ -193,32 +118,62 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven.enforcerplugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>enforce</id>
-                        <configuration>
-                            <rules>
-                                <DependencyConvergence />
-                                <bannedDependencies>
-                                    <excludes>
-                                        <exclude>org.slf4j:slf4j-log4j12</exclude>
-                                        <exclude>org.slf4j:slf4j-jdk14</exclude>
-                                        <exclude>log4j:log4j</exclude>
-                                        <exclude>commons-logging:commons-logging</exclude>
-                                    </excludes>
-                                </bannedDependencies>
-                            </rules>
-                        </configuration>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-version}</version>
+                <configuration>
+                    <source>${java-source-version}</source>
+                    <target>${java-target-version}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
+    <scm>
+        <!--<connection>scm:git:git@github.com:boundary/boundary-plugin-framework-java.git</connection>
+        <developerConnection>scm:git:git@github.com:boundary/boundary-plugin-framework-java.git</developerConnection>
+        <url>git@github.com:boundary/boundary-plugin-framework-java.git</url> -->
+    </scm>
 
+    <profiles>
+        <profile>
+            <id>default-tools.jar</id>
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <!-- <value>Sun Microsystems Inc.</value> -->
+                    <value>Oracle Corporation</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>1.4.2</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>    
     <name>jira-tsi-integration-lib</name>
 </project>
