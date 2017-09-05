@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bmc.truesight.saas.jira.api.JiraAPI;
 import com.bmc.truesight.saas.jira.beans.Configuration;
+import com.bmc.truesight.saas.jira.beans.ErrorResponse;
 import com.bmc.truesight.saas.jira.beans.JiraEventResponse;
 import com.bmc.truesight.saas.jira.beans.Response;
 import com.bmc.truesight.saas.jira.beans.Template;
@@ -75,8 +76,20 @@ public class JiraReader {
             JsonNode responseNode = jiraAPI.search(finalSearchUrl);
             ObjectMapper mapper = new ObjectMapper();
             Response response = mapper.treeToValue(responseNode, Response.class);
+            ErrorResponse errorResponce = mapper.treeToValue(responseNode, ErrorResponse.class);
             log.debug("Response as ->" + response.getTotal());
             recordsCount = response.getTotal();
+            if (errorResponce.getErrorMessages() != null) {
+                for (String error : errorResponce.getErrorMessages()) {
+                    log.error(error);
+                }
+                recordsCount = -1;
+            }
+            if (errorResponce.getWarningMessages() != null) {
+                for (String warn : errorResponce.getWarningMessages()) {
+                    log.warn(warn);
+                }
+            }
         } catch (ParsingException e) {
             log.error("ParsingException : {}" + e.getMessage());
             throw new JiraReadFailedException(e.getMessage());
