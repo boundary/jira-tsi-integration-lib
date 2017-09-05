@@ -82,9 +82,6 @@ public class GenericTemplateValidator implements TemplateValidator {
             throw new ValidationException(Util.format(Constants.APPLICATION_NAME_NOT_FOUND, new Object[0]));
         }
         for (String key : properties.keySet()) {
-            if (!Util.isValidJavaIdentifier(key)) {
-                throw new ValidationException(Util.format(Constants.PROPERTY_NAME_INVALID, new Object[]{key.trim()}));
-            }
             if (properties.get(key).startsWith("@") && !fieldItemMap.containsKey(properties.get(key))) {
                 throw new ValidationException(Util.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{properties.get(key)}));
             }
