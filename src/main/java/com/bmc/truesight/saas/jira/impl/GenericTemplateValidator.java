@@ -78,8 +78,17 @@ public class GenericTemplateValidator implements TemplateValidator {
         if (properties.keySet().size() > Constants.MAX_PROPERTY_FIELD_SUPPORTED) {
             throw new ValidationException(Util.format(Constants.PROPERTY_FIELD_COUNT_EXCEEDS, new Object[]{properties.keySet().size(), Constants.MAX_PROPERTY_FIELD_SUPPORTED}));
         }
-        if (!properties.containsKey("app_id")) {
+        if (!properties.containsKey(Constants.APPLICATION_ID)) {
             throw new ValidationException(Util.format(Constants.APPLICATION_NAME_NOT_FOUND, new Object[0]));
+        }
+        if (!properties.containsKey(Constants.LAST_MODIFIED_DATE_PROPERTY_KEY)) {
+            throw new ValidationException(Util.format(Constants.LAST_MODIFIED_DATE_PROPERTY_KEY_NOT_FOUND, new Object[0]));
+        }
+        FieldItem fieldItem = fieldItemMap.get(properties.get(Constants.LAST_MODIFIED_DATE_PROPERTY_KEY));
+        if (fieldItem != null) {
+            if (!fieldItem.getFieldId().equalsIgnoreCase(Constants.UPDATE)) {
+                throw new ValidationException(Util.format(Constants.LAST_MODIFIED_DATE_FILED_ID_NOT_FOUND, new Object[0]));
+            }
         }
         for (String key : properties.keySet()) {
             if (properties.get(key).startsWith("@") && !fieldItemMap.containsKey(properties.get(key))) {
