@@ -7,10 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import com.bmc.truesight.saas.jira.api.JiraAPI;
 import com.bmc.truesight.saas.jira.beans.Configuration;
+import com.bmc.truesight.saas.jira.beans.ErrorResponse;
 import com.bmc.truesight.saas.jira.beans.JiraEventResponse;
 import com.bmc.truesight.saas.jira.beans.Response;
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
+import com.bmc.truesight.saas.jira.exception.JiraErrorResponse;
 import com.bmc.truesight.saas.jira.exception.JiraLoginFailedException;
 import com.bmc.truesight.saas.jira.exception.JiraReadFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
@@ -52,7 +54,6 @@ public class JiraReader {
         try {
             response = jiraAPI.search(searchUrl);
         } catch (ParsingException e) {
-            log.error("Fetching the issues failed {}", e.getMessage());
             throw new JiraReadFailedException("Fetching the issues failed " + e.getMessage());
         }
         if (!response.isNull()) {
@@ -64,7 +65,7 @@ public class JiraReader {
         return jiraResponse;
     }
 
-    public int getAvailableRecordsCount() throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException {
+    public int getAvailableRecordsCount() throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException, JiraErrorResponse {
         Configuration config = template.getConfig();
         int recordsCount = 0;
         String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
@@ -75,13 +76,26 @@ public class JiraReader {
             JsonNode responseNode = jiraAPI.search(finalSearchUrl);
             ObjectMapper mapper = new ObjectMapper();
             Response response = mapper.treeToValue(responseNode, Response.class);
+            ErrorResponse errorResponce = mapper.treeToValue(responseNode, ErrorResponse.class);
             log.debug("Response as ->" + response.getTotal());
             recordsCount = response.getTotal();
+            if (errorResponce.getErrorMessages() != null) {
+                StringBuilder errorMessage = new StringBuilder();
+                for (String error : errorResponce.getErrorMessages()) {
+                    errorMessage.append(error).append("\n");
+                }
+                throw new JiraErrorResponse(errorMessage.toString());
+            }
+            if (errorResponce.getWarningMessages() != null) {
+                StringBuilder errorMessage = new StringBuilder();
+                for (String warn : errorResponce.getWarningMessages()) {
+                    errorMessage.append(warn).append("\n");
+                }
+                throw new JiraErrorResponse(errorMessage.toString());
+            }
         } catch (ParsingException e) {
-            log.error("ParsingException : {}" + e.getMessage());
             throw new JiraReadFailedException(e.getMessage());
         } catch (JsonProcessingException e) {
-            log.error("JsonProcessingException : {}" + e.getMessage());
             throw new JiraReadFailedException(e.getMessage());
         }
         return recordsCount;
