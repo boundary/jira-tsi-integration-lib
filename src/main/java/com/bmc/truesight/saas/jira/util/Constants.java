@@ -127,4 +127,5 @@ public class Constants {
     public static final String LAST_MODIFIED_DATE_PROPERTY_KEY_NOT_FOUND = "LastModifiedDate field is missing from properties, please include one LastModifiedDate field in properties";
     public static final String LAST_MODIFIED_DATE_FILED_ID_NOT_FOUND = "LastModifiedDate field definition is changed from definition section, please include 'updated'(as filed id) in definition section";
     public static final String UPDATE="updated";
+    public static final String UNAUTHORIZED_MEG = "Unauthorized (401)";
 }

@@ -34,7 +34,7 @@ public class JiraReader {
     private Template template;
     private JiraAPI jiraAPI;
 
-    public JiraReader(Template template) throws JiraApiInstantiationFailedException {
+    public JiraReader(Template template) throws JiraApiInstantiationFailedException, JiraLoginFailedException {
         this.template = template;
         this.jiraAPI = new JiraAPI(template.getConfig());
     }

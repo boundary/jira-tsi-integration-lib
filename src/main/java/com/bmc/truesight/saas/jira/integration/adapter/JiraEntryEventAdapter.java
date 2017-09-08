@@ -47,7 +47,6 @@ public class JiraEntryEventAdapter {
     public TSIEvent convertEntryToEvent(Template template, JsonNode entry) {
 
         TSIEvent event = new TSIEvent(template.getEventDefinition());
-
         event.setTitle(getValueFromEntry(template, entry, event.getTitle()));
         List<String> fPrintFields = new ArrayList<>();
         event.getFingerprintFields().forEach(fingerPrint -> {
@@ -56,7 +55,16 @@ public class JiraEntryEventAdapter {
         event.setFingerprintFields(fPrintFields);
         Map<String, String> properties = event.getProperties();
         for (String key : properties.keySet()) {
-            properties.put(key, getValueFromEntry(template, entry, properties.get(key)));
+            if (template.getJiraFieldIdAndDataType().get(key).equalsIgnoreCase("date") || template.getJiraFieldIdAndDataType().get(key).equalsIgnoreCase("datetime")) {
+                String val = getValueFromEntry(template, entry, properties.get(key));
+                if (val == null || val.isEmpty()) {
+                    properties.put(key, val);
+                } else {
+                    properties.put(key, Long.toString(Util.convertIntoUTC(getValueFromEntry(template, entry, properties.get(key)))));
+                }
+            } else {
+                properties.put(key, getValueFromEntry(template, entry, properties.get(key)));
+            }
         }
         event.setSeverity(getValueFromEntry(template, entry, event.getSeverity()));
         event.setStatus(getValueFromEntry(template, entry, event.getStatus()));

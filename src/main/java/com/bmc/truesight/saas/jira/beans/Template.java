@@ -17,6 +17,15 @@ public class Template {
     private Map<String, FieldItem> FieldItemMap;
     private Map<String, List<String>> filter;
     private String jqlQuery;
+    private Map<String, String> jiraFieldIdAndDataType;
+
+    public Map<String, String> getJiraFieldIdAndDataType() {
+        return jiraFieldIdAndDataType;
+    }
+
+    public void setJiraFieldIdAndDataType(Map<String, String> jiraFieldIdAndDataType) {
+        this.jiraFieldIdAndDataType = jiraFieldIdAndDataType;
+    }
 
     public String getJqlQuery() {
         return jqlQuery;

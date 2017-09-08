@@ -10,13 +10,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
@@ -29,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.api.RestClientException;
 import com.atlassian.jira.rest.client.api.domain.Field;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.IssueType;
@@ -41,6 +38,7 @@ import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientF
 import com.atlassian.util.concurrent.Promise;
 import com.bmc.truesight.saas.jira.beans.Configuration;
 import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
+import com.bmc.truesight.saas.jira.exception.JiraLoginFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
 import com.bmc.truesight.saas.jira.util.Constants;
 import com.bmc.truesight.saas.jira.util.Util;
@@ -63,7 +61,7 @@ public class JiraAPI {
     private JiraRestClient jiraRestClient;
     private String serverTimeZone;
 
-    public JiraAPI(Configuration configuration) throws JiraApiInstantiationFailedException {
+    public JiraAPI(Configuration configuration) throws JiraApiInstantiationFailedException, JiraLoginFailedException {
         config = configuration;
         authCode = this.getAuthCode(configuration.getJiraUserName(), configuration.getJiraPassword());
         try {
@@ -74,7 +72,9 @@ public class JiraAPI {
             throw new JiraApiInstantiationFailedException("Failed to create Jira REST client, " + e.getMessage());
         }
         try {
-            serverTimeZone = this.getServerTimeZone();
+            if (this.isValidCredentials()) {
+                serverTimeZone = this.getServerTimeZone();
+            }
         } catch (ParsingException e) {
             throw new JiraApiInstantiationFailedException("Failed to get serverTimeZone, " + e.getMessage());
         }
@@ -87,18 +87,20 @@ public class JiraAPI {
         return jiraRestClient;
     }
 
-    public boolean isValidCredentials() {
+    public boolean isValidCredentials() throws JiraLoginFailedException {
         boolean isValid = true;
         try {
             Promise<User> promise = jiraRestClient.getUserClient().getUser(config.getJiraUserName());
             User user = promise.claim();
-        } catch (RestClientException ex) {
-            log.error("Authentication failed for host name {} , Response: Status Code {} ", config.getJiraHostName(), ex.getStatusCode().get());
-            isValid = false;
         } catch (Exception ex) {
-            log.debug("Jira validation failed {}", ex.getMessage());
-            log.error("Something went wrong while logging into Jira, Login unsuccessful. Please run in debug mode to get more information");
+            StringBuilder errorMsg = new StringBuilder();
+            if (ex.getMessage().contains(Constants.UNAUTHORIZED_MEG)) {
+                errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Error Message {user name or passowrd is wrong} " + Constants.UNAUTHORIZED_MEG);
+            } else {
+                errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Error Message {} ").append(ex.getMessage());
+            }
             isValid = false;
+            throw new JiraLoginFailedException(errorMsg.toString());
         }
         return isValid;
     }
@@ -122,7 +124,11 @@ public class JiraAPI {
     public Map<String, String> getTypeFields() {
         Map<String, String> fields = new HashMap<>();
         for (Field field : jiraRestClient.getMetadataClient().getFields().claim()) {
-            fields.put(field.getId(), field.getName());
+            if (field.getSchema() == null) {
+                fields.put(field.getId(), field.getName());
+            } else {
+                fields.put(field.getId(), field.getSchema().getType());
+            }
         }
         return fields;
     }
