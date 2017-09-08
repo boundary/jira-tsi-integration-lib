@@ -21,6 +21,7 @@ import com.bmc.truesight.saas.jira.beans.Filter;
 import com.bmc.truesight.saas.jira.beans.TSIEvent;
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
+import com.bmc.truesight.saas.jira.exception.JiraLoginFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
 import com.bmc.truesight.saas.jira.in.TemplateParser;
 import com.bmc.truesight.saas.jira.util.Constants;
@@ -236,7 +237,7 @@ public class GenericTemplateParser implements TemplateParser {
     }
 
     @Override
-    public Template ignoreFields(Template template) throws JiraApiInstantiationFailedException {
+    public Template ignoreFields(Template template) throws JiraApiInstantiationFailedException, JiraLoginFailedException {
         Map<String, String> fields = new HashMap<>();
         JiraAPI jiraAPI = new JiraAPI(template.getConfig());
         boolean isValid = jiraAPI.isValidCredentials();
@@ -260,22 +261,24 @@ public class GenericTemplateParser implements TemplateParser {
                 }
             }
             template.setFieldItemMap(finalFieldMap);
-
             //Invalid Properties removal
             Map<String, String> finalPropertiesFields = new HashMap<>();
+            Map<String, String> jiraFieldIdAndDataType = new HashMap<>();
             for (Map.Entry<String, String> propertEntry : template.getEventDefinition().getProperties().entrySet()) {
                 if (propertEntry.getValue().startsWith("@")) {
                     FieldItem fieldItem = finalFieldMap.get(propertEntry.getValue());
                     if (fieldItem != null) {
                         finalPropertiesFields.put(propertEntry.getKey(), propertEntry.getValue());
+                        jiraFieldIdAndDataType.put(propertEntry.getKey(), fields.get(fieldItem.getFieldId()));
                     } else {
                         log.debug("{} property is ignored because field mapping has invalid jira field", propertEntry.getKey());
                     }
                 } else {
                     finalPropertiesFields.put(propertEntry.getKey(), propertEntry.getValue());
+                    jiraFieldIdAndDataType.put(propertEntry.getKey(), propertEntry.getValue());
                 }
             }
-
+            template.setJiraFieldIdAndDataType(jiraFieldIdAndDataType);
             FieldItem fieldItem = finalFieldMap.get(template.getEventDefinition().getCreatedAt());
             if (fieldItem == null) {
                 log.error("Field Mapping for \"createdAt\" does not exist on Jira, it would be ignored and set as current date on TSI");

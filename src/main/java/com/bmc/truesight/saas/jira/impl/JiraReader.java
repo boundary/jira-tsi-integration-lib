@@ -7,12 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import com.bmc.truesight.saas.jira.api.JiraAPI;
 import com.bmc.truesight.saas.jira.beans.Configuration;
-import com.bmc.truesight.saas.jira.beans.ErrorResponse;
 import com.bmc.truesight.saas.jira.beans.JiraEventResponse;
 import com.bmc.truesight.saas.jira.beans.Response;
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
-import com.bmc.truesight.saas.jira.exception.JiraErrorResponse;
 import com.bmc.truesight.saas.jira.exception.JiraLoginFailedException;
 import com.bmc.truesight.saas.jira.exception.JiraReadFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
@@ -34,7 +32,7 @@ public class JiraReader {
     private Template template;
     private JiraAPI jiraAPI;
 
-    public JiraReader(Template template) throws JiraApiInstantiationFailedException {
+    public JiraReader(Template template) throws JiraApiInstantiationFailedException, JiraLoginFailedException {
         this.template = template;
         this.jiraAPI = new JiraAPI(template.getConfig());
     }
@@ -65,7 +63,7 @@ public class JiraReader {
         return jiraResponse;
     }
 
-    public int getAvailableRecordsCount() throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException, JiraErrorResponse {
+    public int getAvailableRecordsCount() throws JiraReadFailedException, ParseException, JiraApiInstantiationFailedException {
         Configuration config = template.getConfig();
         int recordsCount = 0;
         String searchQuery = jiraAPI.buildJQLQuery(template.getFilter(), config.getStartDateTime(), config.getEndDateTime(), template.getJqlQuery());
@@ -76,22 +74,21 @@ public class JiraReader {
             JsonNode responseNode = jiraAPI.search(finalSearchUrl);
             ObjectMapper mapper = new ObjectMapper();
             Response response = mapper.treeToValue(responseNode, Response.class);
-            ErrorResponse errorResponce = mapper.treeToValue(responseNode, ErrorResponse.class);
             log.debug("Response as ->" + response.getTotal());
             recordsCount = response.getTotal();
-            if (errorResponce.getErrorMessages() != null) {
+            if (response.getErrorMessages() != null) {
                 StringBuilder errorMessage = new StringBuilder();
-                for (String error : errorResponce.getErrorMessages()) {
+                for (String error : response.getErrorMessages()) {
                     errorMessage.append(error).append("\n");
                 }
-                throw new JiraErrorResponse(errorMessage.toString());
+                throw new JiraReadFailedException(errorMessage.toString());
             }
-            if (errorResponce.getWarningMessages() != null) {
+            if (response.getWarningMessages() != null) {
                 StringBuilder errorMessage = new StringBuilder();
-                for (String warn : errorResponce.getWarningMessages()) {
+                for (String warn : response.getWarningMessages()) {
                     errorMessage.append(warn).append("\n");
                 }
-                throw new JiraErrorResponse(errorMessage.toString());
+                throw new JiraReadFailedException(errorMessage.toString());
             }
         } catch (ParsingException e) {
             throw new JiraReadFailedException(e.getMessage());
