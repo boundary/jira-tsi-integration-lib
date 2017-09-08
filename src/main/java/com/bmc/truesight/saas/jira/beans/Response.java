@@ -8,7 +8,8 @@ public class Response {
     private int startAt;
     private int maxResults;
     private int total;
-
+    private String[] errorMessages;
+    private String[] warningMessages;
     public int getStartAt() {
         return startAt;
     }
@@ -32,4 +33,21 @@ public class Response {
     public void setTotal(int total) {
         this.total = total;
     }
+
+    public String[] getErrorMessages() {
+        return errorMessages;
+    }
+
+    public void setErrorMessages(String[] errorMessages) {
+        this.errorMessages = errorMessages;
+    }
+
+    public String[] getWarningMessages() {
+        return warningMessages;
+    }
+
+    public void setWarningMessages(String[] warningMessages) {
+        this.warningMessages = warningMessages;
+    }
+    
 }

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.api.RestClientException;
 import com.atlassian.jira.rest.client.api.domain.Field;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.IssueType;
@@ -92,6 +93,11 @@ public class JiraAPI {
         try {
             Promise<User> promise = jiraRestClient.getUserClient().getUser(config.getJiraUserName());
             User user = promise.claim();
+        } catch (RestClientException ex) {
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Status Code {} ").append(ex.getStatusCode()).append(", Error Message {} ").append(ex.getMessage());
+            isValid = false;
+            throw new JiraLoginFailedException(errorMsg.toString());
         } catch (Exception ex) {
             StringBuilder errorMsg = new StringBuilder();
             if (ex.getMessage().contains(Constants.UNAUTHORIZED_MEG)) {
