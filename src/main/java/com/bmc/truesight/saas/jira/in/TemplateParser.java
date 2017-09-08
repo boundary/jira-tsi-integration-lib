@@ -2,6 +2,7 @@ package com.bmc.truesight.saas.jira.in;
 
 import com.bmc.truesight.saas.jira.beans.Template;
 import com.bmc.truesight.saas.jira.exception.JiraApiInstantiationFailedException;
+import com.bmc.truesight.saas.jira.exception.JiraLoginFailedException;
 import com.bmc.truesight.saas.jira.exception.ParsingException;
 
 /**
@@ -36,5 +37,5 @@ public interface TemplateParser {
      */
     Template readParseConfigFile(Template defaultTemplate, String fileName) throws ParsingException;
 
-    Template ignoreFields(Template defaultTemplate) throws JiraApiInstantiationFailedException;
+    Template ignoreFields(Template defaultTemplate) throws JiraApiInstantiationFailedException,JiraLoginFailedException;
 }

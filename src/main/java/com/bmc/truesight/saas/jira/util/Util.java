@@ -104,14 +104,4 @@ public class Util {
         return isAllowed;
 
     }
-
-    public static boolean isValidValue(String inputString) {
-        for (char c : inputString.toCharArray()) {
-            if (Constants.SPECIAL_CHARACTOR.indexOf(c, 0) >= 0) {
-                return false;
-            }
-        };
-        return true;
-    }
-
 }
