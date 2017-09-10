@@ -37,5 +37,5 @@ public interface TemplateParser {
      */
     Template readParseConfigFile(Template defaultTemplate, String fileName) throws ParsingException;
 
-    Template ignoreFields(Template defaultTemplate) throws JiraApiInstantiationFailedException,JiraLoginFailedException;
+    Template ignoreFields(Template defaultTemplate) throws JiraApiInstantiationFailedException, JiraLoginFailedException;
 }

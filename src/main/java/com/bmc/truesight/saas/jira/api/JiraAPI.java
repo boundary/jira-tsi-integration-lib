@@ -95,16 +95,16 @@ public class JiraAPI {
             User user = promise.claim();
         } catch (RestClientException ex) {
             StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Status Code {} ").append(ex.getStatusCode()).append(", Error Message {} ").append(ex.getMessage());
+            if (ex.getStatusCode().isPresent() && ex.getStatusCode().get() == 401) {
+                errorMsg.append("Authentication failed for host name ").append(config.getJiraHostName()).append(", Please verify the credentials").append(", Status Code ").append(ex.getStatusCode().get());
+            } else {
+                errorMsg.append("Authentication failed for host name ").append(config.getJiraHostName()).append(", Status Code ").append(ex.getStatusCode().get()).append(", ").append(ex.getMessage());
+            }
             isValid = false;
             throw new JiraLoginFailedException(errorMsg.toString());
         } catch (Exception ex) {
             StringBuilder errorMsg = new StringBuilder();
-            if (ex.getMessage().contains(Constants.UNAUTHORIZED_MEG)) {
-                errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Error Message {user name or passowrd is wrong} " + Constants.UNAUTHORIZED_MEG);
-            } else {
-                errorMsg.append("Authentication failed for host name {} ").append(config.getJiraHostName()).append(", Error Message {} ").append(ex.getMessage());
-            }
+            errorMsg.append("There is a problem in authentication with host name, ").append(config.getJiraHostName()).append(", ").append(ex.getMessage());
             isValid = false;
             throw new JiraLoginFailedException(errorMsg.toString());
         }
