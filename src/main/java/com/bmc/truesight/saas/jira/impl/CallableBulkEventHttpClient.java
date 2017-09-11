@@ -115,7 +115,7 @@ public class CallableBulkEventHttpClient implements Callable<Result>, BulkEventH
             httpPost.addHeader("Authorization", "Basic " + encodeBase64("" + ":" + this.configuration.getTsiApiToken()));
             httpPost.addHeader("Content-Type", "application/json");
             httpPost.addHeader("accept", "application/json");
-            httpPost.addHeader("User-Agent", "RemedyScript");
+            httpPost.addHeader("User-Agent", "JiraBulkIngestionScript");
             try {
                 jsonInString = mapper.writeValueAsString(bulkEvents);
                 Charset charsetD = Charset.forName("UTF-8");

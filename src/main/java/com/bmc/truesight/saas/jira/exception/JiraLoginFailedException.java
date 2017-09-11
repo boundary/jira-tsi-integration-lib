@@ -1,7 +1,7 @@
 package com.bmc.truesight.saas.jira.exception;
 
 /**
- * This exception is thrown when login attempt fails in RemedyReader
+ * This exception is thrown when login attempt fails in JiraReader
  *
  * @author vitiwari
  *

@@ -81,7 +81,7 @@ public class Constants {
     public static final String DATERANGE_VALIDATION_FAILED = "Start date & End date in config is not appropriate, start date should not be greater than end date and end date should not be greater than current date.";
     ;
 	//Messages
-    String LOGIN_FAILED = "Login failed to Remedy Server, ({0})";
+    String LOGIN_FAILED = "Login failed to Jira Server, ({0})";
     public static final String PROPERTY_FIELD_COUNT_EXCEEDS = "Event properties field count of {0} exceeds maximum of {1}.";
     public static final String JSON_NODE_RESOLUTION = "resolution";
     public static final String ID = "@ID";
