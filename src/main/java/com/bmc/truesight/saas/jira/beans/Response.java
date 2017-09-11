@@ -10,6 +10,7 @@ public class Response {
     private int total;
     private String[] errorMessages;
     private String[] warningMessages;
+
     public int getStartAt() {
         return startAt;
     }
@@ -49,5 +50,5 @@ public class Response {
     public void setWarningMessages(String[] warningMessages) {
         this.warningMessages = warningMessages;
     }
-    
+
 }

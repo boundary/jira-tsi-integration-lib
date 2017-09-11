@@ -81,7 +81,7 @@ public class Constants {
     public static final String DATERANGE_VALIDATION_FAILED = "Start date & End date in config is not appropriate, start date should not be greater than end date and end date should not be greater than current date.";
     ;
 	//Messages
-    String LOGIN_FAILED = "Login failed to Remedy Server, ({0})";
+    String LOGIN_FAILED = "Login failed to Jira Server, ({0})";
     public static final String PROPERTY_FIELD_COUNT_EXCEEDS = "Event properties field count of {0} exceeds maximum of {1}.";
     public static final String JSON_NODE_RESOLUTION = "resolution";
     public static final String ID = "@ID";
@@ -126,6 +126,6 @@ public class Constants {
     public static final String LAST_MODIFIED_DATE_PROPERTY_KEY = "LastModifiedDate";
     public static final String LAST_MODIFIED_DATE_PROPERTY_KEY_NOT_FOUND = "LastModifiedDate field is missing from properties, please include one LastModifiedDate field in properties";
     public static final String LAST_MODIFIED_DATE_FILED_ID_NOT_FOUND = "LastModifiedDate field definition is changed from definition section, please include 'updated'(as filed id) in definition section";
-    public static final String UPDATE="updated";
+    public static final String UPDATE = "updated";
     public static final String UNAUTHORIZED_MEG = "Unauthorized (401)";
 }
