@@ -128,4 +128,5 @@ public class Constants {
     public static final String LAST_MODIFIED_DATE_FILED_ID_NOT_FOUND = "LastModifiedDate field definition is changed from definition section, please include 'updated'(as filed id) in definition section";
     public static final String UPDATE = "updated";
     public static final String UNAUTHORIZED_MEG = "Unauthorized (401)";
+    public static final String EMAIL_ADDRESS_FIELD = "emailAddress";
 }
