@@ -190,7 +190,7 @@ public class JiraEntryEventAdapter {
                     if (count == 0) {
                         value.append(node.get(Constants.FIELD_NAME).asText());
                     } else {
-                        value.append(",").append(node.get(Constants.FIELD_NAME).asText());
+                        value.append(", ").append(node.get(Constants.FIELD_NAME).asText());
                     }
                     count++;
                 } catch (Exception ex) {
@@ -211,7 +211,15 @@ public class JiraEntryEventAdapter {
             });
             try {
                 List<String> condList = obReader.readValue(jsonNode);
-                value.append(condList);
+                int count = 0;
+                for (String val : condList) {
+                    if (count == 0) {
+                        value.append(condList);
+                    } else {
+                        value.append(",").append(val);
+                    }
+                    count++;
+                }
             } catch (IOException ex) {
                 log.trace("Not able to find the multi values field and ignore it {} " + ex.getMessage());
             }
@@ -232,7 +240,18 @@ public class JiraEntryEventAdapter {
                     log.trace("Not able to find the issue link field and ignore it {} " + ex.getMessage());
                 }
             }
-            value.append(treeSet);
+            if (treeSet.size() > 0) {
+                int count = 0;
+                for (String val : treeSet) {
+                    if (count == 0) {
+                        value.append(val);
+                    } else {
+                        value.append(", ").append(val);
+                    }
+                    count++;
+                }
+            }
+
         }
         return value.toString();
     }
@@ -241,6 +260,7 @@ public class JiraEntryEventAdapter {
         StringBuilder value = new StringBuilder();
         Set<String> treeSet = new TreeSet<>();
         boolean isMultiArray = true;
+        boolean isMultiVal = false;
         ObjectMapper mapper = new ObjectMapper();
         if (jsonNode == null || jsonNode.isNull() || jsonNode.size() <= 0) {
             return value.toString();
@@ -251,18 +271,76 @@ public class JiraEntryEventAdapter {
             } catch (Exception ex) {
                 log.trace("Not able to find the custom field and ignore it {} " + ex.getMessage());
             }
-            value.append(treeSet);
+            if (treeSet.size() > 0) {
+                for (String val : treeSet) {
+                    if (value.length() == 0) {
+                        value.append(val);
+                    } else {
+                        value.append(", ").append(val);
+                    }
+                }
+            }
             if (isMultiArray) {
                 ObjectReader obReader = mapper.reader(new TypeReference<List<String>>() {
                 });
                 try {
                     List<String> condList = obReader.readValue(jsonNode);
-                    value.append(condList);
+                    for (String val : condList) {
+                        if (value.length() == 0) {
+                            value.append(val);
+                        } else {
+                            value.append(", ").append(val);
+                        }
+                    }
+                    isMultiArray = false;
                 } catch (Exception ex) {
+                    isMultiVal = true;
                     log.trace("Not able to find the custom field and ignore it {} " + ex.getMessage());
                 }
             }
+            if (isMultiVal) {
+                value.append(this.getCustomeFiledMultiValues(jsonNode));
+            }
 
+        }
+        if (value.length() == 0) {
+            value.append(getEmailId(jsonNode));
+        }
+        return value.toString();
+    }
+
+    private String getCustomeFiledMultiValues(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
+            for (JsonNode node : jsonNode) {
+                try {
+                    if (!node.isNull()) {
+                        if (value.length() == 0) {
+                            value.append(node.get(Constants.FIELD_VALUE).asText());
+                        } else {
+                            value.append(", ").append(node.get(Constants.FIELD_VALUE).asText());
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.trace("Not able to find the field {}" + ex.getMessage());
+                }
+            }
+        }
+        return value.toString();
+    }
+
+    private String getEmailId(JsonNode jsonNode) {
+        StringBuilder value = new StringBuilder();
+        if (jsonNode == null || jsonNode.isNull()) {
+            return value.toString();
+        } else {
+            try {
+                value.append(jsonNode.get(Constants.EMAIL_ADDRESS_FIELD).asText());
+            } catch (Exception ex) {
+                log.trace("Not able to find the field {}" + ex.getMessage());
+            }
         }
         return value.toString();
     }
